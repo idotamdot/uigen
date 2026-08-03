@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "build:preview-vendor": "esbuild scripts/preview-vendor/*.ts --bundle --format=esm --splitting --outdir=public/preview-vendor --entry-names=[name] --chunk-names=chunks/[name]-[hash]",
     "dev": "next dev --turbopack",
     "dev:daemon": "next dev --turbopack > logs.txt 2>&1 & echo 'Server started, writing logs to logs.txt'",
     "build": "next build",
@@ -42,6 +43,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "1.55.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.0",
@@ -52,6 +54,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.5.2",
+    "esbuild": "0.25.12",
     "eslint": "9.29.0",
     "eslint-config-next": "15.3.9",
     "jsdom": "^26.1.0",
