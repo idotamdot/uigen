@@ -14,6 +14,7 @@ import { CodeEditor } from "@/components/editor/CodeEditor";
 import { PreviewFrame } from "@/components/preview/PreviewFrame";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HeaderActions } from "@/components/HeaderActions";
+import { ChatMessage, SerializedFileSystem } from "@/lib/data-schemas";
 
 interface MainContentProps {
   user?: {
@@ -23,8 +24,8 @@ interface MainContentProps {
   project?: {
     id: string;
     name: string;
-    messages: any[];
-    data: any;
+    messages: ChatMessage[];
+    data: SerializedFileSystem;
     createdAt: Date;
     updatedAt: Date;
   };

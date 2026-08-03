@@ -30,17 +30,39 @@ const textPartSchema = z.object({
 const reasoningPartSchema = z.object({
   type: z.literal("reasoning"),
   reasoning: z.string().max(LIMITS.maxPromptCharacters),
-  details: z.array(jsonValueSchema).optional(),
+  details: z
+    .array(
+      z.union([
+        z.object({
+          type: z.literal("text"),
+          text: z.string().max(LIMITS.maxPromptCharacters),
+          signature: z.string().max(10_000).optional(),
+        }),
+        z.object({
+          type: z.literal("redacted"),
+          data: z.string().max(LIMITS.maxPromptCharacters),
+        }),
+      ])
+    )
+    .max(100),
 });
 
-export const toolCallSchema = z.object({
-  state: z.enum(["partial-call", "call", "result"]),
+const toolCallBase = {
   step: z.number().int().nonnegative().optional(),
   toolCallId: z.string().min(1).max(200),
   toolName: z.string().min(1).max(100),
   args: jsonValueSchema,
-  result: jsonValueSchema.optional(),
-});
+};
+
+export const toolCallSchema = z.discriminatedUnion("state", [
+  z.object({ state: z.literal("partial-call"), ...toolCallBase }),
+  z.object({ state: z.literal("call"), ...toolCallBase }),
+  z.object({
+    state: z.literal("result"),
+    ...toolCallBase,
+    result: jsonValueSchema,
+  }),
+]);
 
 const toolInvocationPartSchema = z.object({
   type: z.literal("tool-invocation"),
@@ -49,7 +71,12 @@ const toolInvocationPartSchema = z.object({
 
 const sourcePartSchema = z.object({
   type: z.literal("source"),
-  source: jsonValueSchema,
+  source: z.object({
+    sourceType: z.literal("url"),
+    id: z.string().min(1).max(200),
+    url: z.string().url().max(2048),
+    title: z.string().max(500).optional(),
+  }),
 });
 
 const filePartSchema = z.object({
@@ -124,6 +151,7 @@ export const serializedFileNodeSchema = z.discriminatedUnion("type", [
     type: z.literal("directory"),
     name: z.string().min(1).max(255),
     path: virtualPathSchema,
+    content: z.undefined().optional(),
   }),
 ]);
 
@@ -193,12 +221,59 @@ export const persistedProjectSchema = z.object({
   data: serializedFileSystemSchema,
 });
 
+export const anonymousWorkSchema = z.object({
+  messages: z.array(chatMessageSchema).max(LIMITS.maxMessages),
+  fileSystemData: serializedFileSystemSchema,
+});
+
+export const createProjectInputSchema = persistedProjectSchema.extend({
+  name: z.string().trim().min(1).max(120),
+});
+
+const strReplaceArgsSchema = z.discriminatedUnion("command", [
+  z.object({ command: z.literal("view"), path: virtualPathSchema }),
+  z.object({
+    command: z.literal("create"),
+    path: virtualPathSchema,
+    file_text: z.string().max(LIMITS.maxFileBytes),
+  }),
+  z.object({
+    command: z.literal("str_replace"),
+    path: virtualPathSchema,
+    old_str: z.string().max(LIMITS.maxFileBytes),
+    new_str: z.string().max(LIMITS.maxFileBytes),
+  }),
+  z.object({
+    command: z.literal("insert"),
+    path: virtualPathSchema,
+    insert_line: z.number().int().nonnegative(),
+    new_str: z.string().max(LIMITS.maxFileBytes),
+  }),
+  z.object({ command: z.literal("undo_edit"), path: virtualPathSchema }),
+]);
+
+const fileManagerArgsSchema = z.discriminatedUnion("command", [
+  z.object({
+    command: z.literal("rename"),
+    path: virtualPathSchema,
+    new_path: virtualPathSchema,
+  }),
+  z.object({ command: z.literal("delete"), path: virtualPathSchema }),
+]);
+
+export const streamedToolCallSchema = z.discriminatedUnion("toolName", [
+  z.object({ toolName: z.literal("str_replace_editor"), args: strReplaceArgsSchema }),
+  z.object({ toolName: z.literal("file_manager"), args: fileManagerArgsSchema }),
+]);
+
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type MessageContentPart = z.infer<typeof messageContentPartSchema>;
 export type ToolCall = z.infer<typeof toolCallSchema>;
 export type SerializedFileNode = z.infer<typeof serializedFileNodeSchema>;
 export type SerializedFileSystem = z.infer<typeof serializedFileSystemSchema>;
 export type PersistedProjectData = z.infer<typeof persistedProjectSchema>;
+export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
+export type StreamedToolCall = z.infer<typeof streamedToolCallSchema>;
 
 export class DataValidationError extends Error {
   readonly code = "DATA_VALIDATION_ERROR";
@@ -207,7 +282,11 @@ export class DataValidationError extends Error {
   constructor(message: string, error: z.ZodError) {
     super(message);
     this.name = "DataValidationError";
-    this.fields = error.flatten().fieldErrors;
+    this.fields = Object.fromEntries(
+      Object.entries(error.flatten().fieldErrors).filter(
+        (entry): entry is [string, string[]] => entry[1] !== undefined
+      )
+    );
   }
 }
 

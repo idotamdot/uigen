@@ -4,6 +4,8 @@ const PLACEHOLDER_VALUES = new Set([
   "your-api-key-here",
   "your-keys-here",
   "replace-me",
+  "replace-with-a-long-random-secret",
+  "replace-with-your-anthropic-api-key",
 ]);
 
 const optionalSecret = z.preprocess(
@@ -19,10 +21,15 @@ const booleanFlag = z
 const rawServerEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   ANTHROPIC_API_KEY: optionalSecret.refine(
-    (value) => value === undefined || !PLACEHOLDER_VALUES.has(value),
-    "ANTHROPIC_API_KEY must not be a placeholder value"
+    (value) =>
+      value === undefined ||
+      (!PLACEHOLDER_VALUES.has(value) && /^sk-ant-[A-Za-z0-9_-]+$/.test(value)),
+    "ANTHROPIC_API_KEY must be a valid Anthropic API key"
   ),
-  JWT_SECRET: optionalSecret,
+  JWT_SECRET: optionalSecret.refine(
+    (value) => value === undefined || !PLACEHOLDER_VALUES.has(value),
+    "JWT_SECRET must not be a placeholder value"
+  ),
   ENABLE_DEV_MOCK_PROVIDER: booleanFlag,
 });
 

@@ -2,6 +2,7 @@
 
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { parsePersistedProject } from "@/lib/data-schemas";
 
 export async function getProject(projectId: string) {
   const session = await getSession();
@@ -21,11 +22,13 @@ export async function getProject(projectId: string) {
     throw new Error("Project not found");
   }
 
+  const persisted = parsePersistedProject(project.messages, project.data);
+
   return {
     id: project.id,
     name: project.name,
-    messages: JSON.parse(project.messages),
-    data: JSON.parse(project.data),
+    messages: persisted.messages,
+    data: persisted.data,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };

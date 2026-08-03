@@ -8,11 +8,10 @@ import React, {
   useEffect,
 } from "react";
 import { VirtualFileSystem, FileNode } from "@/lib/file-system";
-
-interface ToolCall {
-  toolName: string;
-  args: any;
-}
+import {
+  SerializedFileSystem,
+  streamedToolCallSchema,
+} from "@/lib/data-schemas";
 
 interface FileSystemContextType {
   fileSystem: VirtualFileSystem;
@@ -25,7 +24,7 @@ interface FileSystemContextType {
   getFileContent: (path: string) => string | null;
   getAllFiles: () => Map<string, string>;
   refreshTrigger: number;
-  handleToolCall: (toolCall: ToolCall) => void;
+  handleToolCall: (toolCall: unknown) => void;
   reset: () => void;
 }
 
@@ -40,7 +39,7 @@ export function FileSystemProvider({
 }: {
   children: React.ReactNode;
   fileSystem?: VirtualFileSystem;
-  initialData?: Record<string, any>;
+  initialData?: SerializedFileSystem;
 }) {
   const [fileSystem] = useState(() => {
     const fs = providedFileSystem || new VirtualFileSystem();
@@ -143,42 +142,53 @@ export function FileSystemProvider({
   }, [fileSystem, triggerRefresh]);
 
   const handleToolCall = useCallback(
-    (toolCall: ToolCall) => {
-      const { toolName, args } = toolCall;
+    (toolCall: unknown) => {
+      const parsed = streamedToolCallSchema.safeParse(toolCall);
+      if (!parsed.success) {
+        console.error("Rejected invalid filesystem tool call", parsed.error.flatten());
+        return;
+      }
+      const { toolName, args } = parsed.data;
 
       // Handle str_replace_editor tool
-      if (toolName === "str_replace_editor" && args) {
-        const { command, path, file_text, old_str, new_str, insert_line } = args;
-
-        switch (command) {
+      if (toolName === "str_replace_editor") {
+        switch (args.command) {
           case "create":
-            if (path && file_text !== undefined) {
-              const result = fileSystem.createFileWithParents(path, file_text);
+            {
+              const result = fileSystem.createFileWithParents(args.path, args.file_text);
               if (!result.startsWith("Error:")) {
-                createFile(path, file_text);
+                createFile(args.path, args.file_text);
               }
             }
             break;
 
           case "str_replace":
-            if (path && old_str !== undefined && new_str !== undefined) {
-              const result = fileSystem.replaceInFile(path, old_str, new_str);
+            {
+              const result = fileSystem.replaceInFile(
+                args.path,
+                args.old_str,
+                args.new_str
+              );
               if (!result.startsWith("Error:")) {
-                const content = fileSystem.readFile(path);
+                const content = fileSystem.readFile(args.path);
                 if (content !== null) {
-                  updateFile(path, content);
+                  updateFile(args.path, content);
                 }
               }
             }
             break;
 
           case "insert":
-            if (path && new_str !== undefined && insert_line !== undefined) {
-              const result = fileSystem.insertInFile(path, insert_line, new_str);
+            {
+              const result = fileSystem.insertInFile(
+                args.path,
+                args.insert_line,
+                args.new_str
+              );
               if (!result.startsWith("Error:")) {
-                const content = fileSystem.readFile(path);
+                const content = fileSystem.readFile(args.path);
                 if (content !== null) {
-                  updateFile(path, content);
+                  updateFile(args.path, content);
                 }
               }
             }
@@ -187,22 +197,16 @@ export function FileSystemProvider({
       }
 
       // Handle file_manager tool
-      if (toolName === "file_manager" && args) {
-        const { command, path, new_path } = args;
-
-        switch (command) {
+      if (toolName === "file_manager") {
+        switch (args.command) {
           case "rename":
-            if (path && new_path) {
-              renameFile(path, new_path);
-            }
+            renameFile(args.path, args.new_path);
             break;
 
           case "delete":
-            if (path) {
-              const success = fileSystem.deleteFile(path);
-              if (success) {
-                deleteFile(path);
-              }
+            {
+              const success = fileSystem.deleteFile(args.path);
+              if (success) deleteFile(args.path);
             }
             break;
         }

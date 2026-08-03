@@ -288,8 +288,8 @@ export class VirtualFileSystem {
     return fileMap;
   }
 
-  serialize(): Record<string, FileNode> {
-    const result: Record<string, FileNode> = {};
+  serialize(): SerializedFileSystem {
+    const result: SerializedFileSystem = {};
 
     for (const [path, node] of this.files) {
       // Create a shallow copy without the Map children to avoid serialization issues
@@ -304,7 +304,7 @@ export class VirtualFileSystem {
           type: node.type,
           name: node.name,
           path: node.path,
-          content: node.content,
+          content: node.content ?? "",
         };
       }
     }
@@ -515,3 +515,4 @@ export class VirtualFileSystem {
 }
 
 export const fileSystem = new VirtualFileSystem();
+import type { SerializedFileSystem } from "@/lib/data-schemas";

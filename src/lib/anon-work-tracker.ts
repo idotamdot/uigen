@@ -1,8 +1,17 @@
 // Simple utility to track if anonymous user has created work
+import {
+  ChatMessage,
+  anonymousWorkSchema,
+  SerializedFileSystem,
+} from "@/lib/data-schemas";
+
 const STORAGE_KEY = "uigen_has_anon_work";
 const DATA_KEY = "uigen_anon_data";
 
-export function setHasAnonWork(messages: any[], fileSystemData: any) {
+export function setHasAnonWork(
+  messages: ChatMessage[],
+  fileSystemData: SerializedFileSystem
+) {
   if (typeof window === "undefined") return;
   
   // Only set if there's actual content
@@ -17,14 +26,19 @@ export function getHasAnonWork(): boolean {
   return sessionStorage.getItem(STORAGE_KEY) === "true";
 }
 
-export function getAnonWorkData(): { messages: any[], fileSystemData: any } | null {
+export function getAnonWorkData(): {
+  messages: ChatMessage[];
+  fileSystemData: SerializedFileSystem;
+} | null {
   if (typeof window === "undefined") return null;
   
   const data = sessionStorage.getItem(DATA_KEY);
   if (!data) return null;
   
   try {
-    return JSON.parse(data);
+    const raw: unknown = JSON.parse(data);
+    const parsed = anonymousWorkSchema.safeParse(raw);
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
