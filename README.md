@@ -9,13 +9,15 @@ AI-powered React component generator with live preview.
 
 ## Setup
 
-1. **Optional** Edit `.env` and replace `your-api-key-here` with your Anthropic API key from [console.anthropic.com](https://console.anthropic.com/settings/keys):
+1. Copy `.env.example` to `.env` and configure the server environment:
 
 ```
+JWT_SECRET=a-unique-random-secret-of-at-least-32-characters
 ANTHROPIC_API_KEY=sk-ant-...
+ENABLE_DEV_MOCK_PROVIDER=false
 ```
 
-The project runs without an API key — it falls back to a mock provider that returns canned components instead of calling Claude. If you leave the placeholder unchanged, you'll get the mock.
+`JWT_SECRET` is required and must contain at least 32 characters in production. `ANTHROPIC_API_KEY` is required for real generation. `ENABLE_DEV_MOCK_PROVIDER` is optional, defaults to `false`, and may only be set to `true` in development or tests. Mock responses are synthetic and are never enabled automatically or allowed in production.
 
 2. Install dependencies and initialize the database:
 

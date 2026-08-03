@@ -1,9 +1,12 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import {
   LanguageModelV1,
+  LanguageModelV1FinishReason,
   LanguageModelV1StreamPart,
   LanguageModelV1Message,
 } from "@ai-sdk/provider";
+import { getServerEnv } from "@/lib/env";
+import { ConfigurationError } from "@/lib/env-schema";
 
 const MODEL = "claude-haiku-4-5";
 
@@ -26,32 +29,13 @@ export class MockLanguageModel implements LanguageModelV1 {
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];
       if (message.role === "user") {
-        const content = message.content;
-        if (Array.isArray(content)) {
-          // Extract text from content parts
-          const textParts = content
-            .filter((part: any) => part.type === "text")
-            .map((part: any) => part.text);
-          return textParts.join(" ");
-        } else if (typeof content === "string") {
-          return content;
-        }
+        return message.content
+          .filter((part) => part.type === "text")
+          .map((part) => part.text)
+          .join(" ");
       }
     }
     return "";
-  }
-
-  private getLastToolResult(messages: LanguageModelV1Message[]): any {
-    // Find the last tool message
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === "tool") {
-        const content = messages[i].content;
-        if (Array.isArray(content) && content.length > 0) {
-          return content[0];
-        }
-      }
-    }
-    return null;
   }
 
   private async *generateMockStream(
@@ -439,26 +423,27 @@ export default function App() {
     // Build response from parts
     const textParts = parts
       .filter((p) => p.type === "text-delta")
-      .map((p) => (p as any).textDelta)
+      .map((p) => p.textDelta)
       .join("");
 
     const toolCalls = parts
       .filter((p) => p.type === "tool-call")
       .map((p) => ({
         toolCallType: "function" as const,
-        toolCallId: (p as any).toolCallId,
-        toolName: (p as any).toolName,
-        args: (p as any).args,
+        toolCallId: p.toolCallId,
+        toolName: p.toolName,
+        args: p.args,
       }));
 
     // Get finish reason from finish part
-    const finishPart = parts.find((p) => p.type === "finish") as any;
-    const finishReason = finishPart?.finishReason || "stop";
+    const finishPart = parts.find((p) => p.type === "finish");
+    const finishReason: LanguageModelV1FinishReason =
+      finishPart?.type === "finish" ? finishPart.finishReason : "stop";
 
     return {
       text: textParts,
       toolCalls,
-      finishReason: finishReason as any,
+      finishReason,
       usage: {
         promptTokens: 100,
         completionTokens: 200,
@@ -507,16 +492,17 @@ export default function App() {
 }
 
 export function getLanguageModel() {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const env = getServerEnv();
 
-  if (!apiKey || apiKey === "your-keys-here") {
-    console.log(
-      "ANTHROPIC_API_KEY is not set (or is still the placeholder). " +
-      "Using the mock provider — responses will be canned. " +
-      "Set a real key in .env to generate components with Claude."
-    );
+  if (env.ENABLE_DEV_MOCK_PROVIDER) {
     return new MockLanguageModel("mock-" + MODEL);
   }
 
-  return anthropic(MODEL);
+  if (!env.ANTHROPIC_API_KEY) {
+    throw new ConfigurationError(
+      "ANTHROPIC_API_KEY is required when the development mock provider is disabled"
+    );
+  }
+
+  return createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })(MODEL);
 }
