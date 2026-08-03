@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySession } from "@/lib/auth";
+import { verifyRequestSession } from "@/lib/edge-session";
 
 export async function middleware(request: NextRequest) {
-  const session = await verifySession(request);
+  const session = await verifyRequestSession(request);
 
   // Protected routes that require authentication
   const protectedPaths = ["/api/projects", "/api/filesystem"];

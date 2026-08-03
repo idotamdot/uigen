@@ -1,8 +1,8 @@
 // @vitest-environment node
 
-import { SignJWT } from "jose";
+import { SignJWT } from "jose/jwt/sign";
 import { describe, expect, it } from "vitest";
-import { verifySessionToken } from "../session";
+import { verifySessionToken } from "../edge-session";
 
 const secret = new TextEncoder().encode(
   "test-session-secret-with-at-least-thirty-two-characters"

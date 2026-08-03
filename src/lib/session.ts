@@ -1,4 +1,3 @@
-import { jwtVerify } from "jose/jwt/verify";
 import { z } from "zod";
 
 export const sessionClaimsSchema = z.object({
@@ -9,19 +8,6 @@ export const sessionClaimsSchema = z.object({
 });
 
 export type SessionClaims = z.infer<typeof sessionClaimsSchema>;
-
-export async function verifySessionToken(
-  token: string,
-  secret: Uint8Array,
-  currentDate = new Date()
-): Promise<SessionClaims | null> {
-  try {
-    const { payload } = await jwtVerify(token, secret, { currentDate });
-    return parseSessionClaims(payload);
-  } catch {
-    return null;
-  }
-}
 
 export function parseSessionClaims(payload: unknown): SessionClaims | null {
   const parsed = sessionClaimsSchema.safeParse(payload);
