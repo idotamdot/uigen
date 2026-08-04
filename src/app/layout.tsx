@@ -13,9 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UIGen — AI React Component Generator",
+  title: {
+    default: "UIGen — Interface Alchemy",
+    template: "%s · Interface Alchemy",
+  },
   description:
-    "Describe a UI in plain English and watch UIGen generate a live, editable React + Tailwind component in real time.",
+    "Describe the feeling. Generate the interface. UIGen turns creative intent into live, editable React experiences.",
+  applicationName: "UIGen Interface Alchemy",
+  keywords: [
+    "AI UI generator",
+    "React generator",
+    "interface design",
+    "website builder",
+    "Interface Alchemy",
+  ],
 };
 
 export default function RootLayout({
@@ -24,10 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className="dark">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>
