@@ -19,9 +19,14 @@ export function MagicLinkForm() {
     setStatus("sending");
 
     try {
+      // Neon validates callback URLs against the trusted application origin.
+      // Send an explicit absolute URL so production links return to UIGen
+      // rather than relying on relative callback resolution.
+      const callbackURL = new URL("/auth/complete", window.location.origin).toString();
+
       const result = await neonAuthClient.signIn.magicLink({
         email: email.trim().toLowerCase(),
-        callbackURL: "/auth/complete",
+        callbackURL,
       });
 
       if (result.error) {
