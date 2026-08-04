@@ -1,5 +1,5 @@
 import "server-only";
-import { SignJWT } from "jose";
+import { SignJWT } from "jose/jwt/sign";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { getServerEnv } from "@/lib/env";
