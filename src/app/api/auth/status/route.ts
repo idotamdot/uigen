@@ -1,15 +1,38 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getCurrentAppUser } from "@/lib/current-user";
 
 export const dynamic = "force-dynamic";
 
+function isAuthCookieName(name: string) {
+  const normalized = name.toLowerCase();
+  return (
+    normalized.includes("neon-auth") ||
+    normalized.includes("better-auth") ||
+    normalized.includes("session")
+  );
+}
+
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    const authCookieNames = cookieStore
+      .getAll()
+      .map(({ name }) => name)
+      .filter(isAuthCookieName);
+
     const user = await getCurrentAppUser();
 
     if (!user) {
       return NextResponse.json(
-        { authenticated: false },
+        {
+          authenticated: false,
+          diagnostic:
+            authCookieNames.length > 0
+              ? "SESSION_COOKIE_PRESENT_BUT_INVALID"
+              : "SESSION_COOKIE_MISSING",
+          authCookieNames,
+        },
         {
           status: 401,
           headers: {
