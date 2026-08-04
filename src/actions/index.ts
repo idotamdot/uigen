@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcrypt";
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { createSession, deleteSession, getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -16,7 +17,6 @@ export async function signUp(
   password: string
 ): Promise<AuthResult> {
   try {
-    // Validate input
     if (!email || !password) {
       return { success: false, error: "Email and password are required" };
     }
@@ -28,27 +28,24 @@ export async function signUp(
       };
     }
 
-    // Check if user already exists
+    const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       return { success: false, error: "Email already registered" };
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
     const user = await prisma.user.create({
       data: {
-        email,
+        id: randomUUID(),
+        email: normalizedEmail,
         password: hashedPassword,
       },
     });
 
-    // Create session
     await createSession(user.id, user.email);
 
     revalidatePath("/");
@@ -64,28 +61,24 @@ export async function signIn(
   password: string
 ): Promise<AuthResult> {
   try {
-    // Validate input
     if (!email || !password) {
       return { success: false, error: "Email and password are required" };
     }
 
-    // Find user
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.trim().toLowerCase() },
     });
 
-    if (!user) {
-      return { success: false, error: "Invalid credentials" };
+    if (!user?.password) {
+      return { success: false, error: "Use the email sign-in link for this account" };
     }
 
-    // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
       return { success: false, error: "Invalid credentials" };
     }
 
-    // Create session
     await createSession(user.id, user.email);
 
     revalidatePath("/");
