@@ -6,6 +6,7 @@ CLAUDE.local.md
 node_modules/
 .next/
 prisma/dev.db
+/src/generated/prisma/
 *.db-journal
 *.db-shm
 *.db-wal
