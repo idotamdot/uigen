@@ -1,20 +1,20 @@
 "use server";
 
-import { getSession } from "@/lib/auth";
+import { getCurrentAppUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 import { parsePersistedProject } from "@/lib/data-schemas";
 
 export async function getProject(projectId: string) {
-  const session = await getSession();
-  
-  if (!session) {
+  const user = await getCurrentAppUser();
+
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
   const project = await prisma.project.findUnique({
     where: {
       id: projectId,
-      userId: session.userId,
+      userId: user.id,
     },
   });
 
