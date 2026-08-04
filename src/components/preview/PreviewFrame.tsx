@@ -6,7 +6,7 @@ import {
   createImportMap,
   createPreviewHTML,
 } from "@/lib/transform/jsx-transformer";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Sparkles } from "lucide-react";
 
 export function PreviewFrame() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -20,12 +20,10 @@ export function PreviewFrame() {
       try {
         const files = getAllFiles();
 
-        // Clear error first when we have files
         if (files.size > 0 && error) {
           setError(null);
         }
 
-        // Find the entry point - look for App.jsx, App.tsx, index.jsx, or index.tsx
         let foundEntryPoint = entryPoint;
         const possibleEntries = [
           "/App.jsx",
@@ -42,7 +40,6 @@ export function PreviewFrame() {
             foundEntryPoint = found;
             setEntryPoint(found);
           } else if (files.size > 0) {
-            // Just use the first .jsx/.tsx file found
             const firstJSX = Array.from(files.keys()).find(
               (path) => path.endsWith(".jsx") || path.endsWith(".tsx")
             );
@@ -54,15 +51,10 @@ export function PreviewFrame() {
         }
 
         if (files.size === 0) {
-          if (isFirstLoad) {
-            setError("firstLoad");
-          } else {
-            setError("No files to preview");
-          }
+          setError(isFirstLoad ? "firstLoad" : "No files to preview");
           return;
         }
 
-        // We have files, so it's no longer the first load
         if (isFirstLoad) {
           setIsFirstLoad(false);
         }
@@ -79,14 +71,11 @@ export function PreviewFrame() {
 
         if (iframeRef.current) {
           const iframe = iframeRef.current;
-
-          // Need both allow-scripts and allow-same-origin for blob URLs in import map
           iframe.setAttribute(
             "sandbox",
             "allow-scripts allow-same-origin allow-forms"
           );
           iframe.srcdoc = previewHTML;
-
           setError(null);
         }
       } catch (err) {
@@ -101,31 +90,19 @@ export function PreviewFrame() {
   if (error) {
     if (error === "firstLoad") {
       return (
-        <div className="h-full flex items-center justify-center p-8 bg-gray-50">
-          <div className="text-center max-w-md">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-              <svg
-                className="h-8 w-8 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
+        <div className="flex h-full items-center justify-center bg-[#08080d] p-8 text-white">
+          <div className="max-w-md text-center">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-300/20 bg-[radial-gradient(circle_at_30%_20%,rgba(217,70,239,0.35),transparent_48%),radial-gradient(circle_at_75%_75%,rgba(34,211,238,0.25),transparent_45%),#0b0b12] shadow-[0_0_50px_rgba(139,92,246,0.18)]">
+              <Sparkles className="h-7 w-7 text-cyan-100" aria-hidden="true" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Welcome to UI Generator
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Start building React components with AI assistance
+            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-fuchsia-200/60">
+              The Stage is listening
             </p>
-            <p className="text-xs text-gray-500">
-              Ask the AI to create your first component to see it live here
+            <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
+              Describe the feeling. Generate the interface.
+            </h3>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/45">
+              Shape the intent in The Conductor. Your first interface will resolve here as soon as the project has matter.
             </p>
           </div>
         </div>
@@ -133,17 +110,20 @@ export function PreviewFrame() {
     }
 
     return (
-      <div className="h-full flex items-center justify-center p-8 bg-gray-50">
-        <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-            <AlertCircle className="h-8 w-8 text-gray-400" />
+      <div className="flex h-full items-center justify-center bg-[#08080d] p-8 text-white">
+        <div className="max-w-md text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-coral-300/20 bg-white/[0.04]">
+            <AlertCircle className="h-7 w-7 text-[#ff5f6d]" aria-hidden="true" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No Preview Available
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#ff5f6d]/75">
+            Preview interrupted
+          </p>
+          <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
+            The interface could not resolve yet.
           </h3>
-          <p className="text-sm text-gray-500">{error}</p>
-          <p className="text-xs text-gray-400 mt-2">
-            Start by creating a React component using the AI assistant
+          <p className="mt-3 text-sm leading-6 text-white/50">{error}</p>
+          <p className="mt-2 text-xs text-white/30">
+            Your files are safe. Refine the project matter or repair the entry point.
           </p>
         </div>
       </div>
@@ -153,8 +133,8 @@ export function PreviewFrame() {
   return (
     <iframe
       ref={iframeRef}
-      className="w-full h-full border-0 bg-white"
-      title="Preview"
+      className="h-full w-full border-0 bg-white"
+      title="Generated interface preview"
     />
   );
 }
