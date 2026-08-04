@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, FolderOpen, ChevronDown } from "lucide-react";
+import { ChevronDown, FolderOpen, LogOut, Plus, Sparkles } from "lucide-react";
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import { signOut } from "@/actions";
 import { getProjects } from "@/actions/get-projects";
@@ -40,13 +40,11 @@ interface Project {
 export function HeaderActions({ user, projectId }: HeaderActionsProps) {
   const router = useRouter();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Load projects initially
   useEffect(() => {
     if (user && projectId) {
       getProjects()
@@ -56,7 +54,6 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
     }
   }, [user, projectId]);
 
-  // Refresh projects when popover opens
   useEffect(() => {
     if (user && projectsOpen) {
       getProjects().then(setProjects).catch(console.error);
@@ -66,18 +63,7 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
   const filteredProjects = projects.filter((project) =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const currentProject = projects.find((p) => p.id === projectId);
-
-  const handleSignInClick = () => {
-    setAuthMode("signin");
-    setAuthDialogOpen(true);
-  };
-
-  const handleSignUpClick = () => {
-    setAuthMode("signup");
-    setAuthDialogOpen(true);
-  };
+  const currentProject = projects.find((project) => project.id === projectId);
 
   const handleSignOut = async () => {
     await signOut();
@@ -95,19 +81,14 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
   if (!user) {
     return (
       <>
-        <div className="flex gap-2">
-          <Button variant="outline" className="h-8" onClick={handleSignInClick}>
-            Sign In
-          </Button>
-          <Button className="h-8" onClick={handleSignUpClick}>
-            Sign Up
-          </Button>
-        </div>
-        <AuthDialog
-          open={authDialogOpen}
-          onOpenChange={setAuthDialogOpen}
-          defaultMode={authMode}
-        />
+        <Button
+          className="h-9 border border-electric-orchid/70 bg-gradient-to-r from-plasma-violet via-electric-orchid to-signal-cyan px-4 text-hot-white shadow-[0_0_26px_rgba(217,70,239,0.35)] hover:brightness-110"
+          onClick={() => setAuthDialogOpen(true)}
+        >
+          <Sparkles className="h-4 w-4" />
+          Enter UIGen
+        </Button>
+        <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
       </>
     );
   }
@@ -155,7 +136,7 @@ export function HeaderActions({ user, projectId }: HeaderActionsProps) {
         </Popover>
       )}
 
-      <Button className="flex items-center gap-2 h-8" onClick={handleNewDesign}>
+      <Button className="flex h-8 items-center gap-2" onClick={handleNewDesign}>
         <Plus className="h-4 w-4" />
         New Design
       </Button>
