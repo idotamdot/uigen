@@ -1,18 +1,18 @@
 "use server";
 
-import { getSession } from "@/lib/auth";
+import { getCurrentAppUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
 export async function getProjects() {
-  const session = await getSession();
-  
-  if (!session) {
+  const user = await getCurrentAppUser();
+
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
-  const projects = await prisma.project.findMany({
+  return prisma.project.findMany({
     where: {
-      userId: session.userId,
+      userId: user.id,
     },
     orderBy: {
       updatedAt: "desc",
@@ -24,6 +24,4 @@ export async function getProjects() {
       updatedAt: true,
     },
   });
-
-  return projects;
 }
