@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// UIGen application data lives in Neon Postgres.
+// Neon Auth stores identity/session records in its dedicated neon_auth schema.
 
 generator client {
   provider = "prisma-client-js"
@@ -7,17 +7,17 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id
   email     String   @unique
-  password  String
+  password  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   projects  Project[]
 }
 
@@ -29,6 +29,8 @@ model Project {
   data      String   @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
 }
