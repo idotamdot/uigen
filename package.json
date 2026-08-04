@@ -2,6 +2,7 @@
   "name": "uigen",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "build:preview-vendor": "esbuild scripts/preview-vendor/*.ts --bundle --format=esm --splitting --outdir=public/preview-vendor --entry-names=[name] --chunk-names=chunks/[name]-[hash]",
     "dev": "next dev --turbopack",
@@ -9,9 +10,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "setup": "npm install && npx prisma generate && npx prisma migrate dev",
-    "db:reset": "npx prisma migrate reset --force"
+    "test:run": "vitest --run",
+    "setup": "pnpm install && pnpm exec prisma generate && pnpm exec prisma migrate dev",
+    "db:reset": "pnpm exec prisma migrate reset --force"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "1.2.12",
