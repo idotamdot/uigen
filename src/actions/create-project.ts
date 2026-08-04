@@ -1,6 +1,6 @@
 "use server";
 
-import { getSession } from "@/lib/auth";
+import { getCurrentAppUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 import {
   createProjectInputSchema,
@@ -9,9 +9,9 @@ import {
 } from "@/lib/data-schemas";
 
 export async function createProject(input: CreateProjectInput) {
-  const session = await getSession();
-  
-  if (!session) {
+  const user = await getCurrentAppUser();
+
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
@@ -20,14 +20,12 @@ export async function createProject(input: CreateProjectInput) {
     throw new DataValidationError("Project data is invalid", parsed.error);
   }
 
-  const project = await prisma.project.create({
+  return prisma.project.create({
     data: {
       name: parsed.data.name,
-      userId: session.userId,
+      userId: user.id,
       messages: JSON.stringify(parsed.data.messages),
       data: JSON.stringify(parsed.data.data),
     },
   });
-
-  return project;
 }
