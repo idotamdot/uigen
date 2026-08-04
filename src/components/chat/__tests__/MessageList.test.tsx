@@ -1,9 +1,8 @@
-import { test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { afterEach, cleanup, expect, test, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { MessageList } from "../MessageList";
 import type { Message } from "ai";
 
-// Mock the MarkdownRenderer component
 vi.mock("../MarkdownRenderer", () => ({
   MarkdownRenderer: ({ content }: { content: string }) => <div>{content}</div>,
 }));
@@ -12,59 +11,42 @@ afterEach(() => {
   cleanup();
 });
 
-test("MessageList shows empty state when no messages", () => {
+test("shows the Interface Alchemy empty state", () => {
   render(<MessageList messages={[]} />);
 
+  expect(screen.getByText("Interface Alchemy")).toBeDefined();
+  expect(screen.getByText("Describe something impossible.")).toBeDefined();
   expect(
-    screen.getByText("Start a conversation to generate React components")
-  ).toBeDefined();
-  expect(
-    screen.getByText("I can help you create buttons, forms, cards, and more")
+    screen.getByText(
+      "Give the machine a purpose, an atmosphere, and a feeling. The code will follow."
+    )
   ).toBeDefined();
 });
 
-test("MessageList renders user messages", () => {
+test("renders user and assistant messages", () => {
   const messages: Message[] = [
-    {
-      id: "1",
-      role: "user",
-      content: "Create a button component",
-    },
+    { id: "1", role: "user", content: "Create a luminous archive" },
+    { id: "2", role: "assistant", content: "I am shaping the interface." },
   ];
 
   render(<MessageList messages={messages} />);
 
-  expect(screen.getByText("Create a button component")).toBeDefined();
+  expect(screen.getByText("Create a luminous archive")).toBeDefined();
+  expect(screen.getByText("I am shaping the interface.")).toBeDefined();
 });
 
-test("MessageList renders assistant messages", () => {
-  const messages: Message[] = [
-    {
-      id: "1",
-      role: "assistant",
-      content: "I'll help you create a button component.",
-    },
-  ];
-
-  render(<MessageList messages={messages} />);
-
-  expect(
-    screen.getByText("I'll help you create a button component.")
-  ).toBeDefined();
-});
-
-test("MessageList renders messages with parts", () => {
+test("renders text and tool invocation parts", () => {
   const messages: Message[] = [
     {
       id: "1",
       role: "assistant",
       content: "",
       parts: [
-        { type: "text", text: "Creating your component..." },
+        { type: "text", text: "Composing your interface." },
         {
           type: "tool-invocation",
           toolInvocation: {
-            toolCallId: "asdf",
+            toolCallId: "tool-1",
             args: {},
             toolName: "str_replace_editor",
             state: "result",
@@ -77,61 +59,32 @@ test("MessageList renders messages with parts", () => {
 
   render(<MessageList messages={messages} />);
 
-  expect(screen.getByText("Creating your component...")).toBeDefined();
+  expect(screen.getByText("Composing your interface.")).toBeDefined();
   expect(screen.getByText("str_replace_editor")).toBeDefined();
 });
 
-test("MessageList shows content for assistant message with content", () => {
+test("shows the branded loading state for an empty assistant response", () => {
   const messages: Message[] = [
-    {
-      id: "1",
-      role: "assistant",
-      content: "Generating your component...",
-    },
+    { id: "1", role: "assistant", content: "" },
   ];
 
-  render(<MessageList messages={messages} isLoading={true} />);
+  render(<MessageList messages={messages} isLoading />);
 
-  // The component shows the content but not a loading indicator when content is present
-  expect(screen.getByText("Generating your component...")).toBeDefined();
-  expect(screen.queryByText("Generating...")).toBeNull();
+  expect(screen.getByText("Resolving the interface")).toBeDefined();
 });
 
-test("MessageList shows loading state for last assistant message without content", () => {
+test("does not show loading state when the last message is from the user", () => {
   const messages: Message[] = [
-    {
-      id: "1",
-      role: "assistant",
-      content: "",
-    },
+    { id: "1", role: "assistant", content: "First response" },
+    { id: "2", role: "user", content: "Another request" },
   ];
 
-  render(<MessageList messages={messages} isLoading={true} />);
+  render(<MessageList messages={messages} isLoading />);
 
-  expect(screen.getByText("Generating...")).toBeDefined();
+  expect(screen.queryByText("Resolving the interface")).toBeNull();
 });
 
-test("MessageList doesn't show loading state for non-last messages", () => {
-  const messages: Message[] = [
-    {
-      id: "1",
-      role: "assistant",
-      content: "First response",
-    },
-    {
-      id: "2",
-      role: "user",
-      content: "Another request",
-    },
-  ];
-
-  render(<MessageList messages={messages} isLoading={true} />);
-
-  // Loading state should not appear because the last message is from user, not assistant
-  expect(screen.queryByText("Generating...")).toBeNull();
-});
-
-test("MessageList renders reasoning parts", () => {
+test("renders design reasoning", () => {
   const messages: Message[] = [
     {
       id: "1",
@@ -141,7 +94,7 @@ test("MessageList renders reasoning parts", () => {
         { type: "text", text: "Let me analyze this." },
         {
           type: "reasoning",
-          reasoning: "The user wants a button component with specific styling.",
+          reasoning: "The user wants a ceremonial visual hierarchy.",
           details: [],
         },
       ],
@@ -150,56 +103,35 @@ test("MessageList renders reasoning parts", () => {
 
   render(<MessageList messages={messages} />);
 
-  expect(screen.getByText("Reasoning")).toBeDefined();
+  expect(screen.getByText("Design reasoning")).toBeDefined();
   expect(
-    screen.getByText("The user wants a button component with specific styling.")
+    screen.getByText("The user wants a ceremonial visual hierarchy.")
   ).toBeDefined();
 });
 
-test("MessageList renders multiple messages in correct order", () => {
+test("renders multiple messages in the original order", () => {
   const messages: Message[] = [
-    {
-      id: "1",
-      role: "user",
-      content: "First user message",
-    },
-    {
-      id: "2",
-      role: "assistant",
-      content: "First assistant response",
-    },
-    {
-      id: "3",
-      role: "user",
-      content: "Second user message",
-    },
-    {
-      id: "4",
-      role: "assistant",
-      content: "Second assistant response",
-    },
+    { id: "1", role: "user", content: "First user message" },
+    { id: "2", role: "assistant", content: "First assistant response" },
+    { id: "3", role: "user", content: "Second user message" },
+    { id: "4", role: "assistant", content: "Second assistant response" },
   ];
 
   const { container } = render(<MessageList messages={messages} />);
+  const transcript = container.textContent ?? "";
 
-  // Get all message containers in order
-  const messageContainers = container.querySelectorAll(".rounded-xl");
+  const positions = [
+    transcript.indexOf("First user message"),
+    transcript.indexOf("First assistant response"),
+    transcript.indexOf("Second user message"),
+    transcript.indexOf("Second assistant response"),
+  ];
 
-  // Verify we have 4 messages
-  expect(messageContainers).toHaveLength(4);
-
-  // Check the content of each message in order
-  expect(messageContainers[0].textContent).toContain("First user message");
-  expect(messageContainers[1].textContent).toContain(
-    "First assistant response"
-  );
-  expect(messageContainers[2].textContent).toContain("Second user message");
-  expect(messageContainers[3].textContent).toContain(
-    "Second assistant response"
-  );
+  expect(positions.every((position) => position >= 0)).toBe(true);
+  expect(positions).toEqual([...positions].sort((a, b) => a - b));
 });
 
-test("MessageList handles step-start parts", () => {
+test("renders a separator for step boundaries", () => {
   const messages: Message[] = [
     {
       id: "1",
@@ -213,61 +145,47 @@ test("MessageList handles step-start parts", () => {
     },
   ];
 
-  render(<MessageList messages={messages} />);
+  const { container } = render(<MessageList messages={messages} />);
 
   expect(screen.getByText("Step 1 content")).toBeDefined();
   expect(screen.getByText("Step 2 content")).toBeDefined();
-  // Check that a separator exists (hr element)
-  const container = screen.getByText("Step 1 content").closest(".rounded-xl");
-  expect(container?.querySelector("hr")).toBeDefined();
+  expect(container.querySelector("hr")).not.toBeNull();
 });
 
-test("MessageList applies correct styling for user vs assistant messages", () => {
+test("uses distinct alchemical treatments for human and assistant messages", () => {
   const messages: Message[] = [
-    {
-      id: "1",
-      role: "user",
-      content: "User message",
-    },
-    {
-      id: "2",
-      role: "assistant",
-      content: "Assistant message",
-    },
+    { id: "1", role: "user", content: "User message" },
+    { id: "2", role: "assistant", content: "Assistant message" },
   ];
 
   render(<MessageList messages={messages} />);
 
-  const userMessage = screen.getByText("User message").closest(".rounded-xl");
-  const assistantMessage = screen
+  const userBubble = screen.getByText("User message").closest("div.rounded-2xl");
+  const assistantBubble = screen
     .getByText("Assistant message")
-    .closest(".rounded-xl");
+    .closest("div.rounded-2xl");
 
-  // User messages should have blue background
-  expect(userMessage?.className).toContain("bg-blue-600");
-  expect(userMessage?.className).toContain("text-white");
-
-  // Assistant messages should have white background
-  expect(assistantMessage?.className).toContain("bg-white");
-  expect(assistantMessage?.className).toContain("text-neutral-900");
+  expect(userBubble?.className).toContain("from-violet-500");
+  expect(userBubble?.className).toContain("to-cyan-400");
+  expect(assistantBubble?.className).toContain("bg-white/[0.055]");
+  expect(assistantBubble?.className).toContain("text-white/85");
 });
 
-test("MessageList handles empty content with parts", () => {
+test("renders content supplied through parts", () => {
   const messages: Message[] = [
     {
       id: "1",
       role: "assistant",
-      content: "", // Empty content but has parts
+      content: "",
       parts: [{ type: "text", text: "This is from parts" }],
     },
   ];
 
   render(<MessageList messages={messages} />);
-
   expect(screen.getByText("This is from parts")).toBeDefined();
 });
 
-test("MessageList shows loading for assistant message with empty parts", () => {
+test("shows one loading state for empty assistant parts", () => {
   const messages: Message[] = [
     {
       id: "1",
@@ -277,14 +195,6 @@ test("MessageList shows loading for assistant message with empty parts", () => {
     },
   ];
 
-  const { container } = render(
-    <MessageList messages={messages} isLoading={true} />
-  );
-
-  // Check that exactly one "Generating..." text appears
-  const loadingText = container.querySelectorAll(".text-neutral-500");
-  const generatingElements = Array.from(loadingText).filter(
-    (el) => el.textContent === "Generating..."
-  );
-  expect(generatingElements).toHaveLength(1);
+  render(<MessageList messages={messages} isLoading />);
+  expect(screen.getAllByText("Resolving the interface")).toHaveLength(1);
 });
