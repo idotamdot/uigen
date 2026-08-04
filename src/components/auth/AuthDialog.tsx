@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,77 +7,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { SignInForm } from "./SignInForm";
-import { SignUpForm } from "./SignUpForm";
+import { MagicLinkForm } from "./MagicLinkForm";
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultMode?: "signin" | "signup";
 }
 
-export function AuthDialog({
-  open,
-  onOpenChange,
-  defaultMode = "signin",
-}: AuthDialogProps) {
-  const [mode, setMode] = useState<"signin" | "signup">(defaultMode);
-
-  useEffect(() => {
-    setMode(defaultMode);
-  }, [defaultMode]);
-
-  const handleSuccess = () => {
-    onOpenChange(false);
-  };
-
+export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === "signin" ? "Welcome back" : "Create an account"}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === "signin"
-              ? "Sign in to your account to continue"
-              : "Sign up to start creating AI-powered React components"}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="alchemy-glass overflow-hidden border-electric-orchid/45 bg-[#08080d]/95 p-0 text-hot-white shadow-[0_0_70px_rgba(139,92,246,0.28)] sm:max-w-[460px]">
+        <div className="h-px bg-gradient-to-r from-plasma-violet via-electric-orchid to-signal-cyan shadow-[0_0_18px_var(--electric-orchid)]" />
+        <div className="p-6 sm:p-7">
+          <DialogHeader className="text-left">
+            <p className="alchemy-kicker">Secure entry</p>
+            <DialogTitle className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-hot-white">
+              Enter Interface Alchemy
+            </DialogTitle>
+            <DialogDescription className="mt-2 leading-6 text-white/50">
+              One email. One secure link. No password to remember or recover.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="mt-4">
-          {mode === "signin" ? (
-            <SignInForm onSuccess={handleSuccess} />
-          ) : (
-            <SignUpForm onSuccess={handleSuccess} />
-          )}
-        </div>
-
-        <div className="mt-4 text-center text-sm">
-          {mode === "signin" ? (
-            <>
-              Don&apos;t have an account?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto font-normal"
-                onClick={() => setMode("signup")}
-              >
-                Sign up
-              </Button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto font-normal"
-                onClick={() => setMode("signin")}
-              >
-                Sign in
-              </Button>
-            </>
-          )}
+          <div className="mt-6">
+            <MagicLinkForm />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
