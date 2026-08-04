@@ -166,7 +166,7 @@ test("uses distinct alchemical treatments for human and assistant messages", () 
     .closest("div.rounded-2xl");
 
   expect(userBubble?.className).toContain("from-violet-500");
-  expect(userBubble?.className).toContain("to-cyan-400");
+  expect(userBubble?.className).toContain("to-fuchsia-500");
   expect(assistantBubble?.className).toContain("bg-white/[0.055]");
   expect(assistantBubble?.className).toContain("text-white/85");
 });
