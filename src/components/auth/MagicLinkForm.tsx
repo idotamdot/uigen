@@ -21,7 +21,7 @@ export function MagicLinkForm() {
     try {
       const result = await neonAuthClient.signIn.magicLink({
         email: email.trim().toLowerCase(),
-        callbackURL: "/",
+        callbackURL: "/auth/complete",
       });
 
       if (result.error) {
