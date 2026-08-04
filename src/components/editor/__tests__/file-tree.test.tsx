@@ -9,27 +9,29 @@ import { useFileSystem } from "@/lib/contexts/file-system-context";
 
 vi.mock("@/lib/contexts/file-system-context");
 
-const Icon = ({ className }: { className?: string }) => (
-  <div className={className}>Icon</div>
-);
+vi.mock("lucide-react", () => {
+  const MockIcon = ({ className }: { className?: string }) => (
+    <div className={className}>Icon</div>
+  );
 
-vi.mock("lucide-react", () => ({
-  Box: Icon,
-  Braces: Icon,
-  ChevronRight: ({ className }: { className?: string }) => (
-    <div className={className}>ChevronRight</div>
-  ),
-  ChevronDown: ({ className }: { className?: string }) => (
-    <div className={className}>ChevronDown</div>
-  ),
-  Component: Icon,
-  FileCode2: Icon,
-  FileJson2: Icon,
-  Folder: Icon,
-  FolderOpen: Icon,
-  ImageIcon: Icon,
-  Palette: Icon,
-}));
+  return {
+    Box: MockIcon,
+    Braces: MockIcon,
+    ChevronRight: ({ className }: { className?: string }) => (
+      <div className={className}>ChevronRight</div>
+    ),
+    ChevronDown: ({ className }: { className?: string }) => (
+      <div className={className}>ChevronDown</div>
+    ),
+    Component: MockIcon,
+    FileCode2: MockIcon,
+    FileJson2: MockIcon,
+    Folder: MockIcon,
+    FolderOpen: MockIcon,
+    ImageIcon: MockIcon,
+    Palette: MockIcon,
+  };
+});
 
 afterEach(() => {
   cleanup();
