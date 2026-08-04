@@ -3,6 +3,8 @@ import { getProject } from "@/actions/get-project";
 import { MainContent } from "@/app/main-content";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ projectId: string }>;
 }
@@ -15,13 +17,10 @@ export default async function ProjectPage({ params }: PageProps) {
     redirect("/");
   }
 
-  let project;
   try {
-    project = await getProject(projectId);
-  } catch (error) {
-    // If project not found or user doesn't have access, redirect to home
+    const project = await getProject(projectId);
+    return <MainContent user={user} project={project} />;
+  } catch {
     redirect("/");
   }
-
-  return <MainContent user={user} project={project} />;
 }
