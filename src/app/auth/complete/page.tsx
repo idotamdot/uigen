@@ -10,12 +10,23 @@ import { clearAnonWork, getAnonWorkData } from "@/lib/anon-work-tracker";
 const SESSION_ATTEMPTS = 8;
 const SESSION_RETRY_MS = 500;
 
+type AuthStatusBody = {
+  authenticated?: boolean;
+  diagnostic?:
+    | "SESSION_COOKIE_MISSING"
+    | "SESSION_COOKIE_PRESENT_BUT_INVALID";
+  authCookieNames?: string[];
+  error?: string;
+};
+
 function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function waitForAuthenticatedAppUser() {
   let lastStatus = 0;
+  let lastDiagnostic: AuthStatusBody["diagnostic"];
+  let lastCookieNames: string[] = [];
 
   for (let attempt = 0; attempt < SESSION_ATTEMPTS; attempt += 1) {
     const response = await fetch("/api/auth/status", {
@@ -25,18 +36,16 @@ async function waitForAuthenticatedAppUser() {
     });
 
     lastStatus = response.status;
+    const body = (await response.json().catch(() => null)) as AuthStatusBody | null;
 
-    if (response.ok) {
-      const body = (await response.json()) as { authenticated?: boolean };
-      if (body.authenticated) {
-        return;
-      }
+    if (response.ok && body?.authenticated) {
+      return;
     }
 
+    lastDiagnostic = body?.diagnostic;
+    lastCookieNames = body?.authCookieNames ?? [];
+
     if (response.status >= 500) {
-      const body = (await response.json().catch(() => null)) as
-        | { error?: string }
-        | null;
       throw new Error(
         body?.error === "AUTH_STATUS_FAILED"
           ? "UIGen could not validate the Neon session. Check the deployed Neon Auth environment configuration."
@@ -49,11 +58,25 @@ async function waitForAuthenticatedAppUser() {
     }
   }
 
-  throw new Error(
-    lastStatus === 401
-      ? "The secure link opened, but no Neon session was established. Request a new magic link and open it in the same browser."
-      : "UIGen could not complete secure entry."
-  );
+  if (lastStatus === 401) {
+    if (lastDiagnostic === "SESSION_COOKIE_MISSING") {
+      throw new Error(
+        "The magic link returned to UIGen, but Neon did not set a session cookie. The callback exchange is failing before UIGen can sign you in."
+      );
+    }
+
+    if (lastDiagnostic === "SESSION_COOKIE_PRESENT_BUT_INVALID") {
+      const cookieDetail =
+        lastCookieNames.length > 0
+          ? ` Detected cookie: ${lastCookieNames.join(", ")}.`
+          : "";
+      throw new Error(
+        `Neon set an authentication cookie, but UIGen could not validate the session.${cookieDetail}`
+      );
+    }
+  }
+
+  throw new Error("UIGen could not complete secure entry.");
 }
 
 export default function AuthCompletePage() {
