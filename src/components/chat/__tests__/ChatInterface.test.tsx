@@ -1,179 +1,142 @@
-import { test, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { ChatInterface } from "../ChatInterface";
 import { useChat } from "@/lib/contexts/chat-context";
+import type { Message } from "ai";
+import type { ChangeEvent, FormEvent, ReactNode } from "react";
 
-// Mock the dependencies
 vi.mock("@/lib/contexts/chat-context", () => ({
   useChat: vi.fn(),
 }));
 
-// Mock the ScrollArea component
 vi.mock("@/components/ui/scroll-area", () => ({
-  ScrollArea: ({ children, className }: any) => (
+  ScrollArea: ({ children, className }: { children: ReactNode; className?: string }) => (
     <div className={className} data-radix-scroll-area-viewport>
       {children}
     </div>
   ),
 }));
 
-// Mock the child components
 vi.mock("../MessageList", () => ({
-  MessageList: ({ messages, isLoading }: any) => (
+  MessageList: ({ messages, isLoading }: { messages: Message[]; isLoading?: boolean }) => (
     <div data-testid="message-list">
-      {messages.length} messages, loading: {isLoading.toString()}
+      {messages.length} messages, loading: {String(Boolean(isLoading))}
     </div>
   ),
 }));
 
 vi.mock("../MessageInput", () => ({
-  MessageInput: ({ input, handleInputChange, handleSubmit, isLoading }: any) => (
-    <div data-testid="message-input">
-      <input
-        value={input}
-        onChange={handleInputChange}
-        data-testid="input"
-        disabled={isLoading}
-      />
-      <button onClick={handleSubmit} disabled={isLoading} data-testid="submit">
-        Submit
+  MessageInput: ({
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+  }: {
+    input: string;
+    handleInputChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+    handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    isLoading: boolean;
+  }) => (
+    <form data-testid="message-input" onSubmit={handleSubmit}>
+      <textarea value={input} onChange={handleInputChange} disabled={isLoading} />
+      <button type="submit" disabled={isLoading}>
+        Generate
       </button>
-    </div>
+    </form>
   ),
 }));
 
-const mockUseChat = {
+const mockedUseChat = vi.mocked(useChat);
+
+const baseChatState: ReturnType<typeof useChat> = {
   messages: [],
   input: "",
   handleInputChange: vi.fn(),
   handleSubmit: vi.fn(),
-  status: "idle" as const,
+  status: "idle",
+  append: vi.fn(),
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (useChat as any).mockReturnValue(mockUseChat);
+  mockedUseChat.mockReturnValue(baseChatState);
 });
 
 afterEach(() => {
   cleanup();
 });
 
-test("renders chat interface with message list and input", () => {
+test("renders the Conductor with message history and intent input", () => {
   render(<ChatInterface />);
 
+  expect(screen.getByText("The Conductor")).toBeDefined();
+  expect(screen.getByText("What are we creating?")).toBeDefined();
+  expect(screen.getByText("Intent online")).toBeDefined();
   expect(screen.getByTestId("message-list")).toBeDefined();
   expect(screen.getByTestId("message-input")).toBeDefined();
 });
 
-test("passes correct props to MessageList", () => {
-  const messages = [
-    { id: "1", role: "user", content: "Hello" },
-    { id: "2", role: "assistant", content: "Hi there!" },
+test("passes messages and streaming state to the conversation", () => {
+  const messages: Message[] = [
+    { id: "1", role: "user", content: "Create a luminous archive" },
+    { id: "2", role: "assistant", content: "Shaping the interface." },
   ];
-  
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
+
+  mockedUseChat.mockReturnValue({
+    ...baseChatState,
     messages,
     status: "streaming",
   });
 
   render(<ChatInterface />);
 
-  const messageList = screen.getByTestId("message-list");
-  expect(messageList.textContent).toContain("2 messages");
-  expect(messageList.textContent).toContain("loading: true");
+  expect(screen.getByTestId("message-list").textContent).toContain("2 messages");
+  expect(screen.getByTestId("message-list").textContent).toContain("loading: true");
+  expect(screen.getByText("Composing the interface")).toBeDefined();
 });
 
-test("passes correct props to MessageInput", () => {
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
-    input: "Test input",
+test("shows the submitted synthesis state and disables input", () => {
+  mockedUseChat.mockReturnValue({
+    ...baseChatState,
+    input: "A cinematic booking experience",
     status: "submitted",
   });
 
   render(<ChatInterface />);
 
-  const input = screen.getByTestId("input");
-  expect(input).toHaveProperty("value", "Test input");
-  expect(input).toHaveProperty("disabled", true);
+  expect(screen.getByText("Interpreting product intent")).toBeDefined();
+  expect(screen.getByRole("textbox")).toHaveProperty("disabled", true);
+  expect(screen.getByRole("button", { name: "Generate" })).toHaveProperty(
+    "disabled",
+    true
+  );
 });
 
-test("isLoading is true when status is submitted", () => {
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
-    status: "submitted",
-  });
-
+test("keeps the intent input active while idle", () => {
   render(<ChatInterface />);
 
-  const submitButton = screen.getByTestId("submit");
-  expect(submitButton).toHaveProperty("disabled", true);
+  expect(screen.getByRole("textbox")).toHaveProperty("disabled", false);
+  expect(screen.getByRole("button", { name: "Generate" })).toHaveProperty(
+    "disabled",
+    false
+  );
 });
 
-test("isLoading is true when status is streaming", () => {
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
-    status: "streaming",
+test("uses the Chromatic Void container and preserves scroll behavior", () => {
+  const { container, rerender } = render(<ChatInterface />);
+
+  const root = container.firstElementChild;
+  expect(root?.className).toContain("bg-[radial-gradient");
+  expect(root?.className).toContain("overflow-hidden");
+  expect(
+    screen.getByTestId("message-list").closest("[data-radix-scroll-area-viewport]")
+  ).toBeDefined();
+
+  mockedUseChat.mockReturnValue({
+    ...baseChatState,
+    messages: [{ id: "1", role: "user", content: "Evolve this" }],
   });
-
-  render(<ChatInterface />);
-
-  const submitButton = screen.getByTestId("submit");
-  expect(submitButton).toHaveProperty("disabled", true);
-});
-
-test("isLoading is false when status is idle", () => {
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
-    status: "idle",
-  });
-
-  render(<ChatInterface />);
-
-  const submitButton = screen.getByTestId("submit");
-  expect(submitButton).toHaveProperty("disabled", false);
-});
-
-
-test("scrolls when messages change", () => {
-  const { rerender } = render(<ChatInterface />);
-
-  // Get initial scroll container
-  const scrollContainer = screen.getByTestId("message-list").closest("[data-radix-scroll-area-viewport]");
-  expect(scrollContainer).toBeDefined();
-
-  // Update messages - this should trigger the useEffect
-  (useChat as any).mockReturnValue({
-    ...mockUseChat,
-    messages: [
-      { id: "1", role: "user", content: "Hello" },
-      { id: "2", role: "assistant", content: "Hi there!" },
-    ],
-  });
-
   rerender(<ChatInterface />);
 
-  // Verify component re-rendered with new messages
-  const messageList = screen.getByTestId("message-list");
-  expect(messageList.textContent).toContain("2 messages");
-});
-
-test("renders with correct layout classes", () => {
-  const { container } = render(<ChatInterface />);
-
-  const mainDiv = container.firstChild as HTMLElement;
-  expect(mainDiv.className).toContain("flex");
-  expect(mainDiv.className).toContain("flex-col");
-  expect(mainDiv.className).toContain("h-full");
-  expect(mainDiv.className).toContain("p-4");
-  expect(mainDiv.className).toContain("overflow-hidden");
-
-  const scrollArea = screen.getByTestId("message-list").closest(".flex-1");
-  expect(scrollArea?.className).toContain("overflow-hidden");
-
-  const inputWrapper = screen.getByTestId("message-input").parentElement;
-  expect(inputWrapper?.className).toContain("mt-4");
-  expect(inputWrapper?.className).toContain("flex-shrink-0");
+  expect(screen.getByTestId("message-list").textContent).toContain("1 messages");
 });
