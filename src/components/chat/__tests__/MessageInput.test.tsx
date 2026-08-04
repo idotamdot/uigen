@@ -74,10 +74,9 @@ test("disables the prompt and generation control during synthesis", () => {
   renderInput("Create a portal", true);
 
   expect(screen.getByRole("textbox")).toHaveProperty("disabled", true);
-  expect(screen.getByRole("button", { name: "Generate interface" })).toHaveProperty(
-    "disabled",
-    true
-  );
+  expect(
+    screen.getByRole("button", { name: "Interface synthesis in progress" })
+  ).toHaveProperty("disabled", true);
 });
 
 test("disables generation for empty or whitespace-only intent", () => {
