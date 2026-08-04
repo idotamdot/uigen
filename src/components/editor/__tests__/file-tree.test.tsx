@@ -1,69 +1,81 @@
-import { test, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { FileTree } from "@/components/editor/FileTree";
 import {
   type VirtualFileSystem as FileSystem,
-  FileNode,
+  type FileNode,
 } from "@/lib/file-system";
 import { useFileSystem } from "@/lib/contexts/file-system-context";
 
-// Mock the file system context
 vi.mock("@/lib/contexts/file-system-context");
 
-// Clean up after each test
-afterEach(() => {
-  cleanup();
-  vi.clearAllMocks();
-});
+const Icon = ({ className }: { className?: string }) => (
+  <div className={className}>Icon</div>
+);
 
-// Mock lucide-react icons
 vi.mock("lucide-react", () => ({
+  Box: Icon,
+  Braces: Icon,
   ChevronRight: ({ className }: { className?: string }) => (
     <div className={className}>ChevronRight</div>
   ),
   ChevronDown: ({ className }: { className?: string }) => (
     <div className={className}>ChevronDown</div>
   ),
-  Folder: ({ className }: { className?: string }) => (
-    <div className={className}>Folder</div>
-  ),
-  FolderOpen: ({ className }: { className?: string }) => (
-    <div className={className}>FolderOpen</div>
-  ),
-  FileCode: ({ className }: { className?: string }) => (
-    <div className={className}>FileCode</div>
-  ),
+  Component: Icon,
+  FileCode2: Icon,
+  FileJson2: Icon,
+  Folder: Icon,
+  FolderOpen: Icon,
+  ImageIcon: Icon,
+  Palette: Icon,
 }));
 
-// Helper function to create a mock file system
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
 function createMockFileSystem(nodes: Record<string, FileNode>) {
-  const mockFileSystem = {
+  return {
     getNode: (path: string) => nodes[path],
-  };
-  return mockFileSystem as FileSystem;
+  } as FileSystem;
 }
 
-test("FileTree renders empty state when no files exist", () => {
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: new Map() },
-  });
-
+function useMockFileSystem(
+  fileSystem: FileSystem,
+  options: { refreshTrigger?: number; selectedFile?: string | null; setSelectedFile?: ReturnType<typeof vi.fn> } = {}
+) {
   const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
   mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
+    fileSystem,
+    refreshTrigger: options.refreshTrigger ?? 0,
+    selectedFile: options.selectedFile ?? null,
+    setSelectedFile: options.setSelectedFile ?? vi.fn(),
   });
+  return mockUseFileSystem;
+}
 
+function rootWith(children: Map<string, FileNode>): FileSystem {
+  return createMockFileSystem({
+    "/": { type: "directory", name: "", path: "/", children },
+  });
+}
+
+test("FileTree renders the branded empty Matter state", () => {
+  useMockFileSystem(rootWith(new Map()));
   render(<FileTree />);
 
-  expect(screen.getByText("No files yet")).toBeDefined();
-  expect(screen.getByText("Files will appear here")).toBeDefined();
+  expect(screen.getByText("Matter field empty")).toBeDefined();
+  expect(
+    screen.getByText(
+      "Components, assets, tokens, and dependencies will materialize here as the interface forms."
+    )
+  ).toBeDefined();
 });
 
 test("FileTree renders files and directories", () => {
-  const rootChildren = new Map<string, FileNode>([
+  const children = new Map<string, FileNode>([
     [
       "components",
       {
@@ -73,224 +85,130 @@ test("FileTree renders files and directories", () => {
         children: new Map(),
       },
     ],
-    [
-      "App.jsx",
-      { type: "file", name: "App.jsx", path: "/App.jsx", content: "" },
-    ],
+    ["App.jsx", { type: "file", name: "App.jsx", path: "/App.jsx", content: "" }],
   ]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
-  });
-
+  useMockFileSystem(rootWith(children));
   render(<FileTree />);
 
   expect(screen.getByText("components")).toBeDefined();
   expect(screen.getByText("App.jsx")).toBeDefined();
+  expect(screen.getByText("collection")).toBeDefined();
+  expect(screen.getByText("component")).toBeDefined();
 });
 
 test("FileTree sorts directories before files", () => {
-  const rootChildren = new Map<string, FileNode>([
+  const children = new Map<string, FileNode>([
     ["b.txt", { type: "file", name: "b.txt", path: "/b.txt", content: "" }],
     [
       "a-folder",
-      {
-        type: "directory",
-        name: "a-folder",
-        path: "/a-folder",
-        children: new Map(),
-      },
+      { type: "directory", name: "a-folder", path: "/a-folder", children: new Map() },
     ],
     ["c.js", { type: "file", name: "c.js", path: "/c.js", content: "" }],
     [
       "z-folder",
-      {
-        type: "directory",
-        name: "z-folder",
-        path: "/z-folder",
-        children: new Map(),
-      },
+      { type: "directory", name: "z-folder", path: "/z-folder", children: new Map() },
     ],
   ]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
-  });
-
+  useMockFileSystem(rootWith(children));
   render(<FileTree />);
 
-  const items = screen.getAllByText(/^(a-folder|z-folder|b\.txt|c\.js)$/);
-  const itemTexts = items.map((item) => item.textContent);
-
-  // Directories should come first (alphabetically), then files (alphabetically)
-  expect(itemTexts).toEqual(["a-folder", "z-folder", "b.txt", "c.js"]);
+  const names = screen
+    .getAllByText(/^(a-folder|z-folder|b\.txt|c\.js)$/)
+    .map((item) => item.textContent);
+  expect(names).toEqual(["a-folder", "z-folder", "b.txt", "c.js"]);
 });
 
-test("FileTreeNode expands and collapses directories", () => {
-  const childNode: FileNode = {
+test("FileTree expands and collapses collections", () => {
+  const child: FileNode = {
     type: "file",
     name: "child.txt",
     path: "/parent/child.txt",
     content: "",
   };
-  const parentChildren = new Map([["child.txt", childNode]]);
-  const parentNode: FileNode = {
+  const parent: FileNode = {
     type: "directory",
     name: "parent",
     path: "/parent",
-    children: parentChildren,
+    children: new Map([["child.txt", child]]),
   };
-  const rootChildren = new Map([["parent", parentNode]]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-    "/parent": parentNode,
-  });
+  useMockFileSystem(rootWith(new Map([["parent", parent]])));
+  render(<FileTree />);
 
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
-  });
-
-  const { container } = render(<FileTree />);
-
-  // Initially expanded - should show child
-  expect(screen.getByText("parent")).toBeDefined();
+  const parentButton = screen.getByRole("button", { name: "Collection: parent" });
   expect(screen.getByText("child.txt")).toBeDefined();
+  expect(parentButton.getAttribute("aria-expanded")).toBe("true");
 
-  // Find the chevron icon next to "parent" directory
-  const parentDiv = screen.getByText("parent").parentElement;
-  const chevronDown = parentDiv?.querySelector(".h-3\\.5.w-3\\.5");
-  expect(chevronDown?.textContent).toBe("ChevronDown");
+  fireEvent.click(parentButton);
 
-  // Click to collapse
-  fireEvent.click(screen.getByText("parent"));
-
-  // Child should be hidden, chevron should point right
   expect(screen.queryByText("child.txt")).toBeNull();
-  const chevronRight = parentDiv?.querySelector(".h-3\\.5.w-3\\.5");
-  expect(chevronRight?.textContent).toBe("ChevronRight");
+  expect(parentButton.getAttribute("aria-expanded")).toBe("false");
 });
 
-test("FileTreeNode selects file when clicked", () => {
-  const mockSetSelectedFile = vi.fn();
-  const fileNode: FileNode = {
+test("FileTree selects file matter when clicked", () => {
+  const setSelectedFile = vi.fn();
+  const file: FileNode = {
     type: "file",
     name: "test.js",
     path: "/test.js",
     content: "",
   };
-  const rootChildren = new Map([["test.js", fileNode]]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: mockSetSelectedFile,
-  });
-
+  useMockFileSystem(rootWith(new Map([["test.js", file]])), { setSelectedFile });
   render(<FileTree />);
 
-  fireEvent.click(screen.getByText("test.js"));
-
-  expect(mockSetSelectedFile).toHaveBeenCalledWith("/test.js");
+  fireEvent.click(screen.getByRole("button", { name: "logic: test.js" }));
+  expect(setSelectedFile).toHaveBeenCalledWith("/test.js");
 });
 
-test("FileTreeNode highlights selected file", () => {
-  const fileNode: FileNode = {
+test("FileTree gives selected matter an electric treatment", () => {
+  const file: FileNode = {
     type: "file",
     name: "selected.js",
     path: "/selected.js",
     content: "",
   };
-  const rootChildren = new Map([["selected.js", fileNode]]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
+  useMockFileSystem(rootWith(new Map([["selected.js", file]])), {
     selectedFile: "/selected.js",
-    setSelectedFile: vi.fn(),
   });
+  render(<FileTree />);
 
-  const { container } = render(<FileTree />);
-
-  // Find the div containing the file name
-  const fileDiv = screen.getByText("selected.js").parentElement;
-  expect(fileDiv?.className).toContain("bg-blue-50");
-  expect(fileDiv?.className).toContain("text-blue-600");
+  const button = screen.getByRole("button", { name: "logic: selected.js" });
+  expect(button.className).toContain("border-electric-orchid");
+  expect(button.className).toContain("from-plasma-violet/25");
+  expect(button.className).toContain("text-hot-white");
 });
 
-test("FileTree renders nested directory structure", () => {
-  const deepFile: FileNode = {
+test("FileTree renders nested collection structure", () => {
+  const deep: FileNode = {
     type: "file",
     name: "deep.txt",
     path: "/a/b/c/deep.txt",
     content: "",
   };
-  const cChildren = new Map([["deep.txt", deepFile]]);
-  const cNode: FileNode = {
+  const c: FileNode = {
     type: "directory",
     name: "c",
     path: "/a/b/c",
-    children: cChildren,
+    children: new Map([["deep.txt", deep]]),
   };
-  const bChildren = new Map([["c", cNode]]);
-  const bNode: FileNode = {
+  const b: FileNode = {
     type: "directory",
     name: "b",
     path: "/a/b",
-    children: bChildren,
+    children: new Map([["c", c]]),
   };
-  const aChildren = new Map([["b", bNode]]);
-  const aNode: FileNode = {
+  const a: FileNode = {
     type: "directory",
     name: "a",
     path: "/a",
-    children: aChildren,
+    children: new Map([["b", b]]),
   };
-  const rootChildren = new Map([["a", aNode]]);
 
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 0,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
-  });
-
+  useMockFileSystem(rootWith(new Map([["a", a]])));
   render(<FileTree />);
 
   expect(screen.getByText("a")).toBeDefined();
@@ -299,39 +217,24 @@ test("FileTree renders nested directory structure", () => {
   expect(screen.getByText("deep.txt")).toBeDefined();
 });
 
-test("FileTree re-renders when refreshTrigger changes", () => {
-  const fileNode: FileNode = {
+test("FileTree re-renders when the Matter field refreshes", () => {
+  const file: FileNode = {
     type: "file",
     name: "test.js",
     path: "/test.js",
     content: "",
   };
-  const rootChildren = new Map([["test.js", fileNode]]);
-
-  const mockFileSystem = createMockFileSystem({
-    "/": { type: "directory", name: "", path: "/", children: rootChildren },
-  });
-
-  const mockUseFileSystem = useFileSystem as ReturnType<typeof vi.fn>;
-  mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
-    refreshTrigger: 1,
-    selectedFile: null,
-    setSelectedFile: vi.fn(),
-  });
-
+  const fileSystem = rootWith(new Map([["test.js", file]]));
+  const mockUseFileSystem = useMockFileSystem(fileSystem, { refreshTrigger: 1 });
   const { rerender } = render(<FileTree />);
 
-  // Update with new refreshTrigger
   mockUseFileSystem.mockReturnValue({
-    fileSystem: mockFileSystem,
+    fileSystem,
     refreshTrigger: 2,
     selectedFile: null,
     setSelectedFile: vi.fn(),
   });
-
   rerender(<FileTree />);
 
-  // The component should still render correctly
   expect(screen.getByText("test.js")).toBeDefined();
 });
