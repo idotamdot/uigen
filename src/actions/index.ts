@@ -1,120 +1,21 @@
 "use server";
 
-import bcrypt from "bcrypt";
-import { randomUUID } from "node:crypto";
-import { prisma } from "@/lib/prisma";
-import { createSession, deleteSession, getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-export interface AuthResult {
-  success: boolean;
-  error?: string;
-}
-
-export async function signUp(
-  email: string,
-  password: string
-): Promise<AuthResult> {
-  try {
-    if (!email || !password) {
-      return { success: false, error: "Email and password are required" };
-    }
-
-    if (password.length < 8) {
-      return {
-        success: false,
-        error: "Password must be at least 8 characters",
-      };
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (existingUser) {
-      return { success: false, error: "Email already registered" };
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        email: normalizedEmail,
-        password: hashedPassword,
-      },
-    });
-
-    await createSession(user.id, user.email);
-
-    revalidatePath("/");
-    return { success: true };
-  } catch (error) {
-    console.error("Sign up error:", error);
-    return { success: false, error: "An error occurred during sign up" };
-  }
-}
-
-export async function signIn(
-  email: string,
-  password: string
-): Promise<AuthResult> {
-  try {
-    if (!email || !password) {
-      return { success: false, error: "Email and password are required" };
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase() },
-    });
-
-    if (!user?.password) {
-      return { success: false, error: "Use the email sign-in link for this account" };
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return { success: false, error: "Invalid credentials" };
-    }
-
-    await createSession(user.id, user.email);
-
-    revalidatePath("/");
-    return { success: true };
-  } catch (error) {
-    console.error("Sign in error:", error);
-    return { success: false, error: "An error occurred during sign in" };
-  }
-}
+import { getCurrentAppUser } from "@/lib/current-user";
+import { neonAuth } from "@/lib/neon-auth-server";
 
 export async function signOut() {
-  await deleteSession();
+  await neonAuth.signOut();
   revalidatePath("/");
   redirect("/");
 }
 
 export async function getUser() {
-  const session = await getSession();
-
-  if (!session) {
-    return null;
-  }
-
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: {
-        id: true,
-        email: true,
-        createdAt: true,
-      },
-    });
-
-    return user;
+    return await getCurrentAppUser();
   } catch (error) {
-    console.error("Get user error:", error);
+    console.error("Get Neon Auth user error:", error);
     return null;
   }
 }
