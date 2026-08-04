@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireCurrentUser, findUnique } = vi.hoisted(() => ({
-  requireCurrentUser: vi.fn(),
+const { getCurrentAppUser, findUnique } = vi.hoisted(() => ({
+  getCurrentAppUser: vi.fn(),
   findUnique: vi.fn(),
 }));
 
-vi.mock("@/lib/current-user", () => ({ requireCurrentUser }));
+vi.mock("@/lib/current-user", () => ({ getCurrentAppUser }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { project: { findUnique } },
 }));
@@ -15,7 +15,7 @@ import { getProject } from "../get-project";
 describe("getProject ownership", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    requireCurrentUser.mockResolvedValue({
+    getCurrentAppUser.mockResolvedValue({
       id: "user-1",
       email: "user@example.com",
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -32,7 +32,7 @@ describe("getProject ownership", () => {
   });
 
   it("rejects unauthenticated access before querying", async () => {
-    requireCurrentUser.mockRejectedValue(new Error("Unauthorized"));
+    getCurrentAppUser.mockResolvedValue(null);
 
     await expect(getProject("project-1")).rejects.toThrow("Unauthorized");
     expect(findUnique).not.toHaveBeenCalled();
