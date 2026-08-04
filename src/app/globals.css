@@ -25,6 +25,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-plasma-violet: var(--plasma-violet);
+  --color-electric-orchid: var(--electric-orchid);
+  --color-signal-cyan: var(--signal-cyan);
+  --color-solar-coral: var(--solar-coral);
+  --color-acid-lime: var(--acid-lime);
+  --color-hot-white: var(--hot-white);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -86,7 +92,7 @@
 
   ::selection {
     color: #050507;
-    background: #c7ff4a;
+    background: var(--acid-lime);
   }
 
   ::-webkit-scrollbar {
@@ -137,11 +143,11 @@
     content: "";
     background: conic-gradient(
       from var(--alchemy-angle, 0deg),
-      rgba(139, 92, 246, 0.72),
-      rgba(34, 211, 238, 0.62),
+      color-mix(in srgb, var(--plasma-violet) 72%, transparent),
+      color-mix(in srgb, var(--signal-cyan) 62%, transparent),
       rgba(255, 255, 255, 0.15),
-      rgba(217, 70, 239, 0.65),
-      rgba(139, 92, 246, 0.72)
+      color-mix(in srgb, var(--electric-orchid) 65%, transparent),
+      color-mix(in srgb, var(--plasma-violet) 72%, transparent)
     );
     opacity: 0.58;
     animation: alchemy-orbit 12s linear infinite;
@@ -162,11 +168,11 @@
     font-weight: 650;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgba(34, 211, 238, 0.9);
+    color: var(--signal-cyan);
   }
 
   .alchemy-wordmark {
-    background: linear-gradient(92deg, #f8f7ff 10%, #c4b5fd 52%, #67e8f9 96%);
+    background: linear-gradient(92deg, var(--hot-white) 10%, #c4b5fd 52%, #67e8f9 96%);
     background-clip: text;
     color: transparent;
   }
