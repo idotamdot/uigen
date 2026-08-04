@@ -52,10 +52,10 @@
   --secondary-foreground: #f8f7ff;
   --muted: rgba(255, 255, 255, 0.06);
   --muted-foreground: #a5a3b3;
-  --accent: rgba(139, 92, 246, 0.18);
+  --accent: rgba(139, 92, 246, 0.28);
   --accent-foreground: #f8f7ff;
   --destructive: #ff5f6d;
-  --border: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.14);
   --input: rgba(255, 255, 255, 0.1);
   --ring: #22d3ee;
   --void-950: #050507;
@@ -84,15 +84,17 @@
     @apply text-foreground;
     overflow-x: hidden;
     background-image:
-      radial-gradient(circle at 14% 16%, rgba(139, 92, 246, 0.17), transparent 28rem),
-      radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.11), transparent 24rem),
-      radial-gradient(circle at 70% 84%, rgba(217, 70, 239, 0.1), transparent 30rem),
+      radial-gradient(circle at 14% 16%, rgba(139, 92, 246, 0.34), transparent 30rem),
+      radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.26), transparent 26rem),
+      radial-gradient(circle at 70% 84%, rgba(217, 70, 239, 0.24), transparent 32rem),
+      radial-gradient(circle at 52% 52%, rgba(255, 95, 109, 0.08), transparent 34rem),
       linear-gradient(145deg, #050507 0%, #09090d 48%, #050507 100%);
   }
 
   ::selection {
     color: #050507;
     background: var(--acid-lime);
+    text-shadow: 0 0 12px rgba(199, 255, 74, 0.9);
   }
 
   ::-webkit-scrollbar {
@@ -107,27 +109,29 @@
   ::-webkit-scrollbar-thumb {
     border: 3px solid transparent;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.18);
+    background: linear-gradient(var(--plasma-violet), var(--signal-cyan));
     background-clip: padding-box;
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.65);
   }
 }
 
 @layer components {
   .alchemy-grid {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      linear-gradient(rgba(34, 211, 238, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 92, 246, 0.055) 1px, transparent 1px);
     background-size: 42px 42px;
     mask-image: radial-gradient(circle at center, black, transparent 82%);
   }
 
   .alchemy-glass {
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025));
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 0 34px rgba(139, 92, 246, 0.12),
       0 24px 80px rgba(0, 0, 0, 0.34);
-    backdrop-filter: blur(24px) saturate(135%);
+    backdrop-filter: blur(24px) saturate(155%);
   }
 
   .alchemy-edge {
@@ -143,14 +147,21 @@
     content: "";
     background: conic-gradient(
       from var(--alchemy-angle, 0deg),
-      color-mix(in srgb, var(--plasma-violet) 72%, transparent),
-      color-mix(in srgb, var(--signal-cyan) 62%, transparent),
-      rgba(255, 255, 255, 0.15),
-      color-mix(in srgb, var(--electric-orchid) 65%, transparent),
-      color-mix(in srgb, var(--plasma-violet) 72%, transparent)
+      var(--plasma-violet),
+      var(--signal-cyan),
+      var(--hot-white),
+      var(--electric-orchid),
+      var(--solar-coral),
+      var(--acid-lime),
+      var(--plasma-violet)
     );
-    opacity: 0.58;
-    animation: alchemy-orbit 12s linear infinite;
+    opacity: 1;
+    filter: saturate(150%) brightness(1.25);
+    box-shadow:
+      0 0 12px rgba(139, 92, 246, 0.95),
+      0 0 28px rgba(34, 211, 238, 0.72),
+      0 0 44px rgba(217, 70, 239, 0.5);
+    animation: alchemy-orbit 8s linear infinite;
   }
 
   .alchemy-edge::after {
@@ -165,23 +176,34 @@
   .alchemy-kicker {
     font-family: var(--font-geist-mono);
     font-size: 0.68rem;
-    font-weight: 650;
+    font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--signal-cyan);
+    text-shadow:
+      0 0 6px rgba(34, 211, 238, 1),
+      0 0 18px rgba(34, 211, 238, 0.8);
   }
 
   .alchemy-wordmark {
-    background: linear-gradient(92deg, var(--hot-white) 10%, #c4b5fd 52%, #67e8f9 96%);
+    background: linear-gradient(
+      92deg,
+      var(--hot-white) 4%,
+      var(--plasma-violet) 34%,
+      var(--electric-orchid) 58%,
+      var(--signal-cyan) 92%
+    );
     background-clip: text;
     color: transparent;
+    filter: saturate(160%) brightness(1.18);
+    text-shadow: 0 0 28px rgba(139, 92, 246, 0.38);
   }
 
   .alchemy-orb {
     border-radius: 999px;
-    filter: blur(56px);
+    filter: blur(48px) saturate(180%) brightness(1.2);
     pointer-events: none;
-    animation: alchemy-breathe 7s ease-in-out infinite alternate;
+    animation: alchemy-breathe 5.5s ease-in-out infinite alternate;
   }
 }
 
@@ -193,12 +215,12 @@
 
 @keyframes alchemy-breathe {
   from {
-    opacity: 0.32;
+    opacity: 0.48;
     transform: scale(0.92);
   }
   to {
-    opacity: 0.62;
-    transform: scale(1.08);
+    opacity: 0.88;
+    transform: scale(1.1);
   }
 }
 
