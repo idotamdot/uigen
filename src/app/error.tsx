@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 interface RouteErrorProps {
@@ -30,12 +31,12 @@ export default function RouteError({ error, reset }: RouteErrorProps): React.JSX
           >
             Try again
           </button>
-          <a
+          <Link
             href="/"
             className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Return to UIGen
-          </a>
+          </Link>
         </div>
       </section>
     </main>
