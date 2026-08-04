@@ -1,72 +1,101 @@
 # UIGen
 
-AI-powered React component generator with live preview.
+AI-powered React component generator with live preview, persistent projects, and magic-link authentication.
 
 ## Prerequisites
 
 - Node.js 18+
-- npm
+- pnpm
+- Neon Postgres database
+- Neon Auth configured for the deployed UIGen domain
+- Anthropic API key
 
-## Setup
+## Environment setup
 
-1. Copy `.env.example` to `.env` and configure the server environment:
+Copy `.env.example` to `.env` and configure:
 
-```
+```env
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 JWT_SECRET=a-unique-random-secret-of-at-least-32-characters
 ANTHROPIC_API_KEY=sk-ant-...
 ENABLE_DEV_MOCK_PROVIDER=false
 ```
 
-`JWT_SECRET` is required and must contain at least 32 characters in production. `ANTHROPIC_API_KEY` is required for real generation. `ENABLE_DEV_MOCK_PROVIDER` is optional, defaults to `false`, and may only be set to `true` in development or tests. Mock responses are synthetic and are never enabled automatically or allowed in production.
+`DATABASE_URL` is used by Prisma for UIGen application data. Neon Auth maintains identity and provider-session records separately in Neon’s auth schema.
 
-2. Install dependencies and initialize the database:
+`JWT_SECRET` signs UIGen’s own secure session cookie after Neon confirms the user. Use the same secret locally and in the matching Vercel environment only when you intentionally want those deployments to accept the same application sessions. Rotating it signs out sessions created with the prior value.
 
-```bash
-npm run setup
-```
+`ANTHROPIC_API_KEY` is required for real generation. `ENABLE_DEV_MOCK_PROVIDER` defaults to `false`, may only be enabled in development or tests, and is rejected in production.
 
-> **Don't run `npm audit fix`.** Dependencies are pinned to specific versions that work together, and `audit fix` can bump packages past compatible versions and break the app. Known security issues are addressed by updating the pinned versions directly — most recently, Next.js was bumped to a patched release to fix the React2Shell vulnerability (CVE-2025-55182 / CVE-2025-66478). If your scanner still flags something, raise it rather than running `audit fix`.
+Do not commit `.env` or any real secret.
 
-This command will:
-
-- Install all dependencies
-- Generate Prisma client
-- Run database migrations
-
-## Running the Application
-
-### Development
+## Install and initialize
 
 ```bash
-npm run dev
+pnpm install
+pnpm prisma generate
+pnpm prisma migrate deploy
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+For a local development database where creating migrations is intentional, use Prisma’s development migration workflow instead of `migrate deploy`.
+
+> Do not run `npm audit fix` or an equivalent forced dependency rewrite. Dependencies are pinned as a compatible set. Update flagged packages deliberately and validate typecheck, lint, tests, and production build afterward.
+
+## Development
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`.
+
+## Production validation
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test --run
+pnpm build
+```
+
+Plain `pnpm test` starts Vitest watch mode. Use `pnpm test --run` for a one-time pass in release checks and CI.
+
+## Authentication flow
+
+1. A visitor can begin work anonymously.
+2. The visitor requests a Neon magic link.
+3. Neon returns the browser to `/auth/complete` on the UIGen domain.
+4. UIGen waits for the Neon provider session, resolves the application user by stable email identity, creates its signed application session, and restores the pending workspace.
+5. Registered users retain persistent projects in Neon Postgres.
+
+The production domain and callback URL configured in Neon and Vercel must agree. Cookie-secret changes require a new deployment before production functions and middleware use the new value.
 
 ## Usage
 
-1. Sign up or continue as anonymous user
-2. Describe the React component you want to create in the chat
-3. View generated components in real-time preview
-4. Switch to Code view to see and edit the generated files
-5. Continue iterating with the AI to refine your components
+1. Continue anonymously or sign in with a magic link.
+2. Describe the React component or interface you want in the chat.
+3. Review generated output in the live preview.
+4. Open Code view to inspect or edit the virtual files.
+5. Continue iterating with the AI.
+6. Export the generated code when ready.
 
 ## Features
 
-- AI-powered component generation using Claude
+- AI-powered React generation using Anthropic Claude
 - Live preview with hot reload
-- Virtual file system (no files written to disk)
+- Virtual file system with validated edit tools
 - Syntax highlighting and code editor
-- Component persistence for registered users
-- Export generated code
+- Anonymous-work preservation through sign-in
+- Persistent projects for registered users
+- Exportable generated code
 
-## Tech Stack
+## Tech stack
 
-- Next.js 15 with App Router
+- Next.js 15 App Router
 - React 19
 - TypeScript
-- Tailwind CSS v4
-- Prisma with SQLite
-- Anthropic Claude AI
+- Tailwind CSS 4
+- Prisma
+- Neon Postgres and Neon Auth
+- Anthropic Claude
 - Vercel AI SDK
-# uigen
