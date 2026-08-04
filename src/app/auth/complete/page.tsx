@@ -7,6 +7,55 @@ import { createProject } from "@/actions/create-project";
 import { getProjects } from "@/actions/get-projects";
 import { clearAnonWork, getAnonWorkData } from "@/lib/anon-work-tracker";
 
+const SESSION_ATTEMPTS = 8;
+const SESSION_RETRY_MS = 500;
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function waitForAuthenticatedAppUser() {
+  let lastStatus = 0;
+
+  for (let attempt = 0; attempt < SESSION_ATTEMPTS; attempt += 1) {
+    const response = await fetch("/api/auth/status", {
+      method: "GET",
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+
+    lastStatus = response.status;
+
+    if (response.ok) {
+      const body = (await response.json()) as { authenticated?: boolean };
+      if (body.authenticated) {
+        return;
+      }
+    }
+
+    if (response.status >= 500) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(
+        body?.error === "AUTH_STATUS_FAILED"
+          ? "UIGen could not validate the Neon session. Check the deployed Neon Auth environment configuration."
+          : "UIGen could not validate your secure session."
+      );
+    }
+
+    if (attempt < SESSION_ATTEMPTS - 1) {
+      await wait(SESSION_RETRY_MS);
+    }
+  }
+
+  throw new Error(
+    lastStatus === 401
+      ? "The secure link opened, but no Neon session was established. Request a new magic link and open it in the same browser."
+      : "UIGen could not complete secure entry."
+  );
+}
+
 export default function AuthCompletePage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -16,9 +65,15 @@ export default function AuthCompletePage() {
 
     const completeEntry = async () => {
       try {
+        await waitForAuthenticatedAppUser();
+
         const anonWork = getAnonWorkData();
 
-        if (anonWork && (anonWork.messages.length > 0 || Object.keys(anonWork.fileSystemData).length > 1)) {
+        if (
+          anonWork &&
+          (anonWork.messages.length > 0 ||
+            Object.keys(anonWork.fileSystemData).length > 1)
+        ) {
           const project = await createProject({
             name: `Recovered synthesis ${new Date().toLocaleDateString()}`,
             messages: anonWork.messages,
@@ -43,7 +98,11 @@ export default function AuthCompletePage() {
         router.replace(`/${project.id}`);
       } catch (cause) {
         if (active) {
-          setError(cause instanceof Error ? cause.message : "UIGen could not complete secure entry.");
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "UIGen could not complete secure entry."
+          );
         }
       }
     };
@@ -65,9 +124,12 @@ export default function AuthCompletePage() {
           <Sparkles className="h-7 w-7 animate-pulse text-signal-cyan drop-shadow-[0_0_12px_var(--signal-cyan)]" />
         </div>
         <p className="alchemy-kicker mt-6">Identity online</p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">Opening your workspace</h1>
+        <h1 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
+          Opening your workspace
+        </h1>
         <p className="mt-3 text-sm leading-6 text-white/50">
-          UIGen is resolving your projects and restoring any interface matter created before sign-in.
+          UIGen is resolving your projects and restoring any interface matter
+          created before sign-in.
         </p>
 
         {error && (
