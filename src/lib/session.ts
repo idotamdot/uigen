@@ -1,4 +1,4 @@
-import { jwtVerify, JWTPayload } from "jose";
+import { jwtVerify } from "jose/jwt/verify";
 import { z } from "zod";
 
 export const sessionClaimsSchema = z.object({
@@ -23,7 +23,7 @@ export async function verifySessionToken(
   }
 }
 
-export function parseSessionClaims(payload: JWTPayload): SessionClaims | null {
+export function parseSessionClaims(payload: unknown): SessionClaims | null {
   const parsed = sessionClaimsSchema.safeParse(payload);
   return parsed.success ? parsed.data : null;
 }
