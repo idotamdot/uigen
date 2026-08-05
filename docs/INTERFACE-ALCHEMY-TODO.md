@@ -6,36 +6,73 @@ Product thesis:
 
 > Not “AI that makes components.” A living creative engine where intent becomes interface.
 
-Brand line:
+Primary brand line:
 
 > Describe the feeling. Generate the interface.
 
-Alternate campaign line:
+Secondary campaign line:
 
 > Thought, rendered.
 
 ## Status legend
 
 - [ ] Not started
-- [~] Partial / foundation exists but does not yet satisfy the brand direction
-- [x] Implemented and verified
+- [~] Partial, blocked, or implemented but not yet verified
+- [x] Implemented and verified in code
+- [!] Known blocker intentionally deferred
+
+## Current execution state — August 4, 2026
+
+### Production status
+
+- [!] Vercel production is intentionally paused while UIGen is completed and tested on the laptop.
+- [!] Neon Auth production callback blocker: the magic link returns to UIGen, but Neon does not set a session cookie. The callback exchange fails before UIGen can create or resolve the application user.
+- [x] UIGen now reports the callback failure precisely instead of presenting a blank page.
+- [ ] Resume production only after local completion, release validation, and a dedicated Neon Auth callback repair pass.
+
+### Current focus
+
+1. [x] Reconcile the roadmap with the implemented Chromatic Void foundation.
+2. [ ] Finish The Stage.
+3. [ ] Finish The Matter Panel.
+4. [ ] Finish The Conductor.
+5. [ ] Implement real Synthesis pipeline states.
+6. [ ] Add Intent Capsules and mood modulation.
+7. [ ] Complete Release mode and export validation.
+8. [ ] Run full local release checks.
+9. [ ] Return to the deferred production-auth blocker.
+
+---
 
 ## Phase 0 — Product foundation
 
 - [x] Neon Postgres persistence
-- [x] Neon Auth magic-link flow
-- [x] Application session cookie
-- [x] Anonymous work restoration after sign-in
-- [x] Project ownership resolution by stable user identity
-- [x] Typecheck, lint, test, and production build passing
-- [~] Production auth smoke test after deployment
+- [~] Neon Auth magic-link implementation exists
+- [!] Production magic-link callback does not establish the Neon session cookie
+- [~] Application-user synchronization exists but cannot run until a Neon session is established
+- [x] Anonymous work restoration flow exists
+- [x] Project ownership resolves by stable normalized email identity
+- [x] Server-side auth status diagnostics distinguish missing cookie from invalid session
+- [x] Typecheck, tests, and production build passed before the latest visual-foundation update
+- [ ] Re-run typecheck, tests, and build after each implementation batch
 - [~] First-load bundle optimization for `/` and `/[projectId]`
+
+### Deferred auth repair checklist
+
+- [ ] Capture the Neon callback request and response in a clean Network trace
+- [ ] Confirm whether the Neon callback endpoint emits `Set-Cookie`
+- [ ] Compare the installed `@neondatabase/auth` version with the current documented callback flow
+- [ ] Verify trusted origins and callback policy in the exact Neon project and branch
+- [ ] Verify Vercel and local Auth base URLs target the same Neon branch
+- [ ] Repair and verify session establishment before unpausing production
+
+---
 
 ## Phase 1 — Chromatic Void design system
 
-Goal: establish the visual foundation before redesigning individual screens.
+Goal: establish a coherent visual system before expanding individual branded surfaces.
 
-- [ ] Add canonical color tokens:
+- [x] Canonical color tokens:
   - `--void-950: #050507`
   - `--void-900: #09090d`
   - `--void-800: #101018`
@@ -48,19 +85,13 @@ Goal: establish the visual foundation before redesigning individual screens.
   - `--glass-fill: rgba(255,255,255,0.055)`
   - `--glass-border: rgba(255,255,255,0.14)`
   - `--glass-highlight: rgba(255,255,255,0.28)`
-- [ ] Enforce semantic state colors:
-  - violet = generative intelligence
-  - cyan = valid / connected / ready
-  - coral = transformation / revision
-  - lime = successful build
-  - white = active human control
-  - red = actual failure only
-- [ ] Build reusable obsidian-glass surfaces
-- [ ] Add atmospheric grain
-- [ ] Add slowly shifting spatial background gradients
-- [ ] Replace ordinary drop shadows with luminous depth
-- [ ] Add reduced-motion-safe behavior
-- [ ] Add motion tokens:
+- [~] Semantic state-color enforcement across every screen
+- [x] Reusable obsidian-glass surface class
+- [x] Atmospheric grain layer
+- [x] Slowly shifting spatial background gradients
+- [x] Luminous depth replaces ordinary generic shadows in the branded primitives
+- [x] Reduced-motion-safe global behavior
+- [x] Motion tokens:
   - `--motion-instant: 90ms`
   - `--motion-fast: 160ms`
   - `--motion-standard: 260ms`
@@ -68,150 +99,147 @@ Goal: establish the visual foundation before redesigning individual screens.
 
 ### Acceptance criteria
 
-- [ ] No major workspace surface uses generic gray IDE styling
-- [ ] Accent color communicates state consistently
-- [ ] Motion feels responsive, weighted, continuous, and intentional
-- [ ] Reduced-motion users receive a complete non-animated experience
+- [~] No major workspace surface uses generic gray IDE styling
+- [~] Accent color communicates state consistently
+- [x] Global motion has a reduced-motion fallback
+- [~] Motion feels responsive, weighted, continuous, and intentional across the entire workspace
+
+---
 
 ## Phase 2 — Signature living edge
 
-Goal: create the unmistakable UIGen visual token.
-
-- [ ] Create a reusable `LivingEdge` primitive
-- [ ] Apply it to cards
-- [ ] Apply it to panels
-- [ ] Apply it to selected files
-- [ ] Apply it to primary buttons
-- [ ] Apply it to preview frames
-- [ ] Make the spectral motion extremely slow and refined
-- [ ] Avoid rainbow effects or constant visual noise
-- [ ] Pause or simplify motion for reduced-motion preferences
+- [~] CSS living-edge foundation exists as `.alchemy-edge`
+- [ ] Promote it into a reusable typed `LivingEdge` component or primitive
+- [ ] Apply consistently to cards
+- [ ] Apply consistently to panels
+- [ ] Apply to selected files
+- [ ] Apply to primary actions
+- [ ] Apply to preview frames
+- [x] Slow the spectral orbit to a refined idle pace
+- [~] Keep the effect controlled rather than noisy
+- [x] Reduced-motion fallback exists
 
 ### Acceptance criteria
 
-- [ ] The living edge is recognizable across the product
-- [ ] It never obstructs text, code, or preview content
-- [ ] It is subtle when idle and more visible during active system work
+- [ ] The living edge is recognizable throughout the product
+- [ ] It never obstructs text, code, or generated interfaces
+- [ ] Idle state is subtle; active generation state is more visible
+
+---
 
 ## Phase 3 — Logo, wordmark, and verbal identity
 
-- [ ] Design the geometric U from opposing interface brackets
-- [ ] Give one half a human/fluid character
-- [ ] Give one half a machine-perfect character
-- [ ] Join the halves with a luminous generative spark
-- [ ] Create static light and dark variants
-- [ ] Create favicon/app-icon variants
-- [ ] Animate the mark during generation:
-  1. halves separate
-  2. interface fragments appear
-  3. glyph recomposes
-  4. completed UI enters preview
-- [ ] Build the UIGen wordmark
-- [ ] Give the `i` a glowing node
-- [ ] Use “Describe the feeling. Generate the interface.” in primary product branding
-- [ ] Use “Thought, rendered.” only as a campaign/secondary line
-- [ ] Replace generic product copy with confident collaborator language
+- [~] Branded wordmark treatment exists
+- [ ] Design the final geometric U from opposing interface brackets
+- [ ] Human/fluid half and machine-perfect half
+- [ ] Luminous joining spark
+- [ ] Static light and dark variants
+- [ ] Favicon and app-icon variants
+- [ ] Generation animation sequence
+- [ ] Final UIGen wordmark with glowing `i` node
+- [~] Use “Describe the feeling. Generate the interface.” consistently
+- [ ] Reserve “Thought, rendered.” for secondary/campaign use
+- [~] Replace generic system copy with collaborator language
 
-### Voice replacements
+Voice targets:
 
 - [ ] “Your generation has completed successfully.” → “The interface is ready.”
-- [ ] “An error occurred.” → specific, reassuring diagnosis
+- [x] Generic auth failure → specific diagnosis
 - [ ] “Would you like to make changes?” → “What should evolve next?”
+
+---
 
 ## Phase 4 — Landing page
 
-Goal: demonstrate the product immediately rather than merely describing it.
-
-- [ ] Full-viewport Chromatic Void hero
+- [~] Chromatic Void visual foundation exists
+- [ ] Full-viewport demonstrative hero
 - [ ] Oversized headline typography
-- [ ] Primary prompt: “Describe something impossible.”
+- [ ] Prompt: “Describe something impossible.”
 - [ ] Primary action: “Create something”
 - [ ] Secondary action: “Explore generations”
 - [ ] Remove generic “Get Started” language
-- [ ] Add drifting generated examples:
-  - biotech dashboard
-  - occult editorial archive
-  - luxury architecture portfolio
-  - playful learning app
-  - cinematic booking interface
-- [ ] Shift the atmosphere when hovering prompt examples
-- [ ] Add live transformation demonstration
-- [ ] Show one prompt rendered in multiple visual directions
-- [ ] Add Component DNA section:
-  - structure
-  - tokens
-  - states
-  - responsiveness
-  - motion
-  - accessibility
-  - code
-- [ ] Include the message: “Beautiful is not enough. It has to survive production.”
-- [ ] Preserve a direct path into anonymous creation
-- [ ] Preserve magic-link sign-in and work restoration
+- [ ] Drifting generated examples
+- [ ] Atmosphere shift on example hover
+- [ ] Live transformation demonstration
+- [ ] One prompt rendered in multiple visual directions
+- [ ] Component DNA section
+- [ ] Message: “Beautiful is not enough. It has to survive production.”
+- [x] Preserve direct anonymous creation path
+- [~] Preserve magic-link sign-in and restoration; production verification blocked
 
-### Acceptance criteria
-
-- [ ] A visitor understands UIGen within one viewport
-- [ ] The page demonstrates atmosphere-sensitive generation
-- [ ] The page does not resemble a generic AI SaaS landing page
+---
 
 ## Phase 5 — Generative Cockpit shell
 
-Goal: transform the current three-panel workspace without sacrificing usability.
-
-- [ ] Rename and redesign the left panel as **The Matter Panel**
-- [ ] Rename and redesign the center as **The Stage**
-- [ ] Rename and redesign the right panel as **The Conductor**
-- [ ] Keep familiar tooltips and accessible labels for clarity
-- [ ] Avoid turning the workspace into an IDE clone
+- [~] Three-panel workspace foundation exists
+- [ ] Finalize left panel as **The Matter Panel**
+- [ ] Finalize center as **The Stage**
+- [ ] Finalize right panel as **The Conductor**
+- [ ] Keep conventional tooltips and accessible labels
+- [ ] Remove remaining generic IDE-clone presentation
 - [ ] Preserve keyboard navigation
-- [ ] Preserve resize behavior
+- [ ] Preserve panel resizing
 - [ ] Preserve mobile and narrow-screen usability
+
+---
 
 ## Phase 6 — The Matter Panel
 
-- [ ] Represent pages
-- [ ] Represent components
-- [ ] Represent assets
-- [ ] Represent tokens
-- [ ] Represent dependencies
-- [ ] Represent versions
-- [ ] Represent design DNA
-- [ ] Add object-specific visual signatures:
+- [ ] Distinguish pages
+- [ ] Distinguish components
+- [ ] Distinguish assets
+- [ ] Distinguish tokens
+- [ ] Distinguish dependencies
+- [ ] Distinguish versions
+- [ ] Distinguish design DNA
+- [ ] Object signatures:
   - page = framed rectangle
   - component = connected nodes
   - token = glowing droplet
   - asset = image aperture
   - dependency = hexagonal module
-- [ ] Pulse edited items briefly
-- [ ] Emit a thin visual relationship line from edited item to preview
-- [ ] Make all animations correspond to real file activity
-- [ ] Preserve code-tree operations and tests
+- [ ] Brief real-activity pulse on edited items
+- [ ] Real relationship signal from edited item to preview
+- [ ] No decorative activity disconnected from file operations
+- [ ] Preserve file-tree operations and tests
+
+---
 
 ## Phase 7 — The Stage
 
-- [ ] Remove heavy browser chrome
-- [ ] Make generated interfaces float on a spatial canvas
+**Next implementation target.**
+
+- [ ] Remove remaining heavy browser chrome
+- [ ] Float generated interfaces on a spatial canvas
 - [ ] Add dissolving device frames
 - [ ] Add magnetic-feeling resize handles
 - [ ] Add smooth breakpoint transitions
-- [ ] Project active viewport dimensions below the canvas
-- [ ] Add Stage modes:
+- [ ] Show active viewport dimensions below the canvas
+- [ ] Add modes:
   - Live
   - Structure
   - Responsive
   - Motion
   - Accessibility
   - Diff
-- [ ] Structure mode shows component anatomy as luminous bounds
-- [ ] Diff mode ghosts the previous interface behind the new version
+- [ ] Structure mode displays component anatomy as luminous bounds
+- [ ] Diff mode ghosts the prior interface behind the active version
 - [ ] Motion mode reveals active transitions without slowing normal work
-- [ ] Accessibility mode surfaces meaningful findings and fixes
+- [ ] Accessibility mode reports actionable findings and fixes
+
+### Stage acceptance criteria
+
+- [ ] Current dimensions are always legible
+- [ ] Mode changes are keyboard accessible
+- [ ] Every mode reflects real preview or analysis data
+- [ ] Generated interfaces remain the visual priority
+
+---
 
 ## Phase 8 — The Conductor
 
 - [ ] Replace generic chat framing with “What are we creating?”
-- [ ] Make the prompt expand naturally with content
+- [ ] Prompt expands naturally with content
 - [ ] Detect atmosphere language and display intent tokens
 - [ ] Interpret prompts into editable structured dimensions:
   - purpose
@@ -221,47 +249,51 @@ Goal: transform the current three-panel workspace without sacrificing usability.
   - density
   - accessibility constraints
   - technical structure
-- [ ] Let users adjust dimensions without rewriting the prompt
-- [ ] Keep all inferred fields transparent and reversible
-- [ ] Preserve chat history and streaming behavior
+- [ ] Users can revise inferred dimensions without rewriting the prompt
+- [ ] Inference remains transparent and reversible
+- [ ] Preserve history and streaming behavior
+
+---
 
 ## Phase 9 — Synthesis Mode
 
-Goal: make generation memorable while showing real work only.
-
 - [ ] Replace generic spinner behavior
-- [ ] Collapse prompt into a glowing seed on the Stage
-- [ ] Show semantic concepts orbiting the seed
-- [ ] Let components emerge as wireframes
-- [ ] Apply color and typography next
-- [ ] Lock layout into place
-- [ ] Propagate interaction signals
-- [ ] Resolve final UI into full fidelity
-- [ ] Map visible stages to real pipeline state:
+- [ ] Prompt collapses into a glowing seed on The Stage
+- [ ] Semantic concepts orbit the seed only when backed by parsed intent
+- [ ] Components emerge as wireframes
+- [ ] Color and typography apply after structure
+- [ ] Layout locks into place
+- [ ] Interaction signals propagate
+- [ ] Final interface resolves into full fidelity
+- [ ] Map visuals to real pipeline states:
   - Interpreting product intent
   - Building visual language
   - Composing page structure
   - Generating reusable components
   - Validating responsive behavior
   - Running interface checks
-- [ ] Accelerate naturally for fast generations
-- [ ] Never add fake delay or fake progress
-- [ ] Provide precise recovery messaging when generation fails
+- [ ] No artificial delay
+- [ ] No fake progress
+- [ ] Precise recovery state on failure
+
+---
 
 ## Phase 10 — Intent Capsules
 
-- [ ] Transform each submitted prompt into a compact Intent Capsule
-- [ ] Attach the capsule to the generated version
-- [ ] Reopen the original design intent from the capsule
-- [ ] Store structured intent with the version
-- [ ] Make intent history explainable and auditable
-- [ ] Preserve prior intent when revisions branch
+- [ ] Convert submitted prompts into compact Intent Capsules
+- [ ] Attach each capsule to its generated version
+- [ ] Reopen original intent from the capsule
+- [ ] Store structured intent with version data
+- [ ] Explain and audit intent history
+- [ ] Preserve intent when revisions branch
+
+---
 
 ## Phase 11 — Direct visual revision
 
-- [ ] Allow selecting an element inside the preview
-- [ ] Show a soft selection halo
-- [ ] Add scoped actions:
+- [ ] Select an element in the preview
+- [ ] Soft selection halo
+- [ ] Scoped actions:
   - Restyle
   - Rewrite
   - Reposition
@@ -270,42 +302,42 @@ Goal: make generation memorable while showing real work only.
   - Animate
   - Replace
   - Explain
-- [ ] Send selected-element context into generation safely
-- [ ] Keep revisions scoped unless the user explicitly broadens them
+- [ ] Send scoped context safely
+- [ ] Keep revisions scoped by default
 - [ ] Show exactly what changed
-- [ ] Provide undo/restore paths
+- [ ] Undo and restore paths
+
+---
 
 ## Phase 12 — Mood modulation
 
-- [ ] Add **Energy** control:
-  - Quiet
-  - Balanced
-  - Electric
-- [ ] Add **Character** control:
-  - Familiar
-  - Distinctive
-  - Experimental
-- [ ] Feed controls into structured generation inputs
+- [ ] **Energy:** Quiet / Balanced / Electric
+- [ ] **Character:** Familiar / Distinctive / Experimental
+- [ ] Feed settings into structured generation inputs
 - [ ] Persist values with versions
-- [ ] Ensure controls affect output rather than merely recoloring the UI
+- [ ] Controls change generated output, not merely the application chrome
+
+---
 
 ## Phase 13 — Version constellations
 
-- [ ] Replace flat version history with a branching constellation
+- [ ] Branching visual version map
 - [ ] Main revisions form the central path
 - [ ] Experiments branch outward
-- [ ] Successful versions glow more brightly
-- [ ] Allow branch naming
+- [ ] Successful versions glow more clearly
+- [ ] Branch naming
 - [ ] Compare any two nodes
 - [ ] Restore any node
 - [ ] Preserve project safety and auditability
-- [ ] Keep a list/table fallback for accessibility
+- [ ] Accessible list/table fallback
+
+---
 
 ## Phase 14 — Magnetic command palette
 
 - [ ] Open with `/` when focus context permits
-- [ ] Make the command surface spatial but keyboard-first
-- [ ] Add commands:
+- [ ] Spatial presentation, keyboard-first behavior
+- [ ] Commands:
   - Generate section
   - Change visual direction
   - Audit accessibility
@@ -314,44 +346,52 @@ Goal: make generation memorable while showing real work only.
   - Explain this code
   - Repair preview
   - Export project
-- [ ] Add command search
-- [ ] Add contextual command ranking
-- [ ] Ensure commands expose shortcuts and consequences clearly
+- [ ] Search
+- [ ] Contextual ranking
+- [ ] Show shortcuts and consequences clearly
+
+---
 
 ## Phase 15 — Four product modes
 
-- [ ] Add **Imagine** — prompt and visual direction
-- [ ] Add **Shape** — direct manipulation, style, layout, refinement
-- [ ] Add **Inspect** — code, structure, dependencies, responsive and accessibility review
-- [ ] Add **Release** — export, copy, documentation, validation, deployment readiness
-- [ ] Make the current mode unmistakable
-- [ ] Preserve direct access to familiar tools
-- [ ] Avoid obscuring functionality behind branded vocabulary
+- [ ] **Imagine** — prompt and visual direction
+- [ ] **Shape** — manipulation, style, layout, refinement
+- [ ] **Inspect** — code, structure, dependencies, responsive and accessibility review
+- [ ] **Release** — export, copy, documentation, validation, deployment readiness
+- [ ] Current mode is unmistakable
+- [ ] Familiar tools remain directly accessible
+- [ ] Branded vocabulary never hides functionality
+
+---
 
 ## Phase 16 — Typography
 
-- [ ] Choose a dramatic geometric/grotesk display face
-- [ ] Choose a highly legible neutral interface face
-- [ ] Choose a rounded mono face for code and system output
+- [ ] Dramatic geometric/grotesk display face
+- [ ] Highly legible neutral interface face
+- [ ] Rounded mono face for code and system output
 - [ ] Avoid harsh terminal styling
 - [ ] Integrate code typography into the brand
-- [ ] Use oversized landing typography without harming responsiveness
-- [ ] Do not distribute font files in the repository unless licensing permits
+- [ ] Oversized landing type remains responsive
+- [x] Do not distribute unlicensed font files
+
+---
 
 ## Phase 17 — Sound
 
-- [ ] Off by default
-- [ ] Add a soft tonal pulse when generation begins
-- [ ] Add delicate stage-completion ticks
-- [ ] Add a deep resolving tone when the build succeeds
-- [ ] Avoid arcade effects
-- [ ] Avoid constant ambient sound
-- [ ] Add a clear mute/control setting
-- [ ] Respect reduced-motion and accessibility preferences where relevant
+- [x] Sound remains off by default
+- [ ] Optional soft tonal pulse at generation start
+- [ ] Delicate stage-completion ticks
+- [ ] Deep resolving tone at successful build
+- [ ] No arcade effects
+- [ ] No constant ambient sound
+- [ ] Clear mute/control setting
+- [ ] Respect accessibility preferences
+
+---
 
 ## Phase 18 — Non-negotiable UX safeguards
 
-At every moment the user must know:
+At every moment, the user must know:
 
 - [ ] What the system is doing
 - [ ] What changed
@@ -360,40 +400,39 @@ At every moment the user must know:
 Additional safeguards:
 
 - [ ] No fake progress theater
-- [ ] No cinematic effect may block productive work
-- [ ] No branded term may hide a familiar function
-- [ ] Failures explain what broke and confirm whether files are safe
-- [ ] All major actions have keyboard-accessible equivalents
-- [ ] All advanced visualizations have readable fallback views
-- [ ] Mobile users can still create, inspect, and recover work
+- [ ] Cinematic effects never block productive work
+- [ ] Branded terms never hide familiar functions
+- [~] Failures explain what broke and whether files are safe
+- [ ] Major actions have keyboard-accessible equivalents
+- [ ] Advanced visualizations have readable fallback views
+- [ ] Mobile users can create, inspect, and recover work
 
-## Recommended implementation order
+---
 
-1. [ ] Phase 1 — Chromatic Void tokens and primitives
-2. [ ] Phase 2 — Living edge
-3. [ ] Phase 3 — Logo, wordmark, and product voice
-4. [ ] Phase 4 — Landing page
-5. [ ] Phase 5 — Generative Cockpit shell
-6. [ ] Phase 6 — Matter Panel
-7. [ ] Phase 7 — Stage
-8. [ ] Phase 8 — Conductor
-9. [ ] Phase 9 — Synthesis Mode
-10. [ ] Phase 10 — Intent Capsules
-11. [ ] Phase 12 — Mood modulation
-12. [ ] Phase 14 — Command palette
-13. [ ] Phase 11 — Direct visual revision
-14. [ ] Phase 13 — Version constellations
-15. [ ] Phase 15 — Four product modes
-16. [ ] Phases 16–18 — typography, sound, and final UX safeguards
+## Release checklist
+
+- [ ] Complete Stages 5–12 to a coherent usable depth
+- [ ] Verify project export from a real generated workspace
+- [ ] Verify anonymous creation and restoration locally
+- [ ] Verify persistent project creation and reopening locally
+- [ ] Verify mobile workspace controls
+- [ ] Verify keyboard navigation
+- [ ] Verify reduced-motion experience
+- [ ] Run `pnpm test:run`
+- [ ] Run `pnpm typecheck`
+- [ ] Run `pnpm build`
+- [ ] Repair production Neon Auth callback
+- [ ] Run production authentication smoke test
+- [ ] Unpause Vercel only after successful smoke test
 
 ## Definition of done
 
-UIGen is not considered fully aligned with Interface Alchemy until:
+UIGen is fully aligned with Interface Alchemy when:
 
-- [ ] The landing page demonstrates atmosphere-sensitive interface generation
+- [ ] The landing page demonstrates atmosphere-sensitive generation
 - [ ] The workspace feels like a design instrument rather than an IDE clone
-- [ ] The living edge is implemented as a consistent signature token
-- [ ] Generation exposes real, meaningful pipeline state
+- [ ] The living edge is a consistent signature token
+- [ ] Generation exposes real pipeline state
 - [ ] Intent persists with every version
 - [ ] Users can see what changed and what to do next
 - [ ] The product remains fast, accessible, testable, and production-safe
