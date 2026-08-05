@@ -2,6 +2,12 @@
 
 AI-powered React component generator with live preview, persistent projects, and magic-link authentication.
 
+## Interface Alchemy roadmap
+
+The canonical branding and product-transformation checklist lives in [`docs/INTERFACE-ALCHEMY-TODO.md`](docs/INTERFACE-ALCHEMY-TODO.md).
+
+Use that roadmap to track the Chromatic Void design system, living-edge signature, logo and wordmark, landing page, Generative Cockpit, Matter Panel, Stage, Conductor, Synthesis Mode, Intent Capsules, direct visual revision, version constellations, product modes, typography, sound, and UX safeguards.
+
 ## Prerequisites
 
 - Node.js 18+
